@@ -1,0 +1,20 @@
+# dependencies
+/node_modules
+
+# build
+/dist
+*.tsbuildinfo
+
+# environment (real credentials are never committed)
+.env
+
+# local database files
+/data
+
+# test coverage
+/coverage
+
+# editor / OS
+.vscode/
+.idea/
+.DS_Store

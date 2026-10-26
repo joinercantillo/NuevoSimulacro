@@ -1,0 +1,82 @@
+// AUTO GENERATED FILE: do not edit by hand.
+//
+// Regenerate it with: npm run diagrams
+//
+// Source of the model: scripts/generate-diagrams.mjs
+
+// Physical model (MER): paste it in https://dbdiagram.io
+
+Enum room_type_enum {
+  SINGLE
+  DOUBLE
+  SUITE
+}
+
+Enum room_status_enum {
+  AVAILABLE
+  OCCUPIED
+  MAINTENANCE
+}
+
+Enum reservation_status_enum {
+  PENDING
+  CONFIRMED
+  IN_PROGRESS
+  FINISHED
+  CANCELLED
+}
+
+Table hotels {
+  id integer [pk, increment]
+  name varchar(100) [not null]
+  location varchar(100) [not null]
+  address varchar(200) [not null]
+  city varchar(100) [not null]
+  active boolean [not null]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+  Note: 'Branches of the Arenosa Hotels chain'
+}
+
+Table rooms {
+  id integer [pk, increment]
+  number varchar(10) [not null]
+  room_type room_type_enum [not null]
+  capacity integer [not null]
+  status room_status_enum [not null]
+  hotel_id integer [not null]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+  Note: 'Rooms of each branch'
+}
+
+Table receptionists {
+  id integer [pk, increment]
+  name varchar(100) [not null]
+  document varchar(20) [not null]
+  phone varchar(20) [not null]
+  email varchar(100) [not null]
+  active boolean [not null]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+  Note: 'Receptionists referenced by the reservations'
+}
+
+Table reservations {
+  id integer [pk, increment]
+  guest varchar(100) [not null]
+  guest_document varchar(12) [not null]
+  room_type room_type_enum [not null]
+  check_in date [not null]
+  check_out date [not null]
+  receptionist_id integer [not null]
+  room_id integer [not null]
+  status reservation_status_enum [not null]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+  Note: 'Reservation of a room by a guest, owned by one receptionist'
+}
+
+Ref: rooms.hotel_id > hotels.id
+Ref: reservations.receptionist_id > receptionists.id
+Ref: reservations.room_id > rooms.id

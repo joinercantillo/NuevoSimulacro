@@ -1,0 +1,67 @@
+<!-- AUTO GENERATED FILE: do not edit by hand.
+
+Regenerate it with: npm run diagrams
+
+Source of the model: scripts/generate-diagrams.mjs
+-->
+
+%% Conceptual entity-relationship diagram (DER) of the reservations model
+erDiagram
+  %% room_type_enum: SINGLE, DOUBLE, SUITE
+  %% room_status_enum: AVAILABLE, OCCUPIED, MAINTENANCE
+  %% reservation_status_enum: PENDING, CONFIRMED, IN_PROGRESS, FINISHED, CANCELLED
+
+  %% Branches of the Arenosa Hotels chain
+  Hotel {
+    integer id "PK"
+    string name
+    string location
+    string address
+    string city
+    boolean active
+    datetime createdAt
+    datetime updatedAt
+  }
+
+  %% Rooms of each branch
+  Room {
+    integer id "PK"
+    string number
+    enum roomType
+    integer capacity
+    enum status
+    integer hotelId "FK"
+    datetime createdAt
+    datetime updatedAt
+  }
+
+  %% Receptionists referenced by the reservations
+  Receptionist {
+    integer id "PK"
+    string name
+    string document
+    string phone
+    string email
+    boolean active
+    datetime createdAt
+    datetime updatedAt
+  }
+
+  %% Reservation of a room by a guest, owned by one receptionist
+  Reservation {
+    integer id "PK"
+    string guest
+    string guestDocument
+    enum roomType
+    date checkInDate
+    date checkOutDate
+    integer receptionistId "FK"
+    integer roomId "FK"
+    enum status
+    datetime createdAt
+    datetime updatedAt
+  }
+
+  Hotel ||--o{ Room : "has"
+  Room ||--o{ Reservation : "hosts"
+  Receptionist ||--o{ Reservation : "is responsible for"

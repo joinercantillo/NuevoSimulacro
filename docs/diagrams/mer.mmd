@@ -1,0 +1,64 @@
+<!-- AUTO GENERATED FILE: do not edit by hand.
+
+Regenerate it with: npm run diagrams
+
+Source of the model: scripts/generate-diagrams.mjs
+-->
+
+%% Physical relational model (MER) of the reservations model
+erDiagram
+
+  %% Branches of the Arenosa Hotels chain
+  hotels {
+    integer id "PK"
+    varchar name
+    varchar location
+    varchar address
+    varchar city
+    boolean active
+    timestamp created_at
+    timestamp updated_at
+  }
+
+  %% Rooms of each branch
+  rooms {
+    integer id "PK"
+    varchar number
+    varchar room_type
+    integer capacity
+    varchar status
+    integer hotel_id "FK"
+    timestamp created_at
+    timestamp updated_at
+  }
+
+  %% Receptionists referenced by the reservations
+  receptionists {
+    integer id "PK"
+    varchar name
+    varchar document
+    varchar phone
+    varchar email
+    boolean active
+    timestamp created_at
+    timestamp updated_at
+  }
+
+  %% Reservation of a room by a guest, owned by one receptionist
+  reservations {
+    integer id "PK"
+    varchar guest
+    varchar guest_document
+    varchar room_type
+    date check_in
+    date check_out
+    integer receptionist_id "FK"
+    integer room_id "FK"
+    varchar status
+    timestamp created_at
+    timestamp updated_at
+  }
+
+  hotels ||--o{ rooms : "has"
+  rooms ||--o{ reservations : "hosts"
+  receptionists ||--o{ reservations : "is responsible for"
