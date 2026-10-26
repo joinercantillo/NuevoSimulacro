@@ -12,8 +12,26 @@ export const swaggerConfiguration = (app: INestApplication): void => {
         '`x-user` header (the id of a test user). Use the Authorize button to send both headers.',
     )
     .setVersion('1.0.0')
-    .addApiKey({ type: 'apiKey', name: 'x-api-key', in: 'header' }, 'API Key')
-    .addApiKey({ type: 'apiKey', name: 'x-user', in: 'header' }, 'User')
+
+      .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'JWT',
+        in: 'header',
+      },
+      'JWT-auth',
+    )
+   .addApiKey(
+      {
+        type: 'apiKey',
+        name: 'x-api-key', // Nombre exacto de la cabecera que busca el error
+        in: 'header',
+        description: 'Ingresa tu API Key global para poder consumir los recursos',
+      },
+      'api-key-auth', // Nombre de la estrategia para los controladores
+    )
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
