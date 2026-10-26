@@ -5,7 +5,8 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { UsersService } from '../../modules/users/users.service.js';
-import { User } from '../../modules/users/user.js';
+import { User } from '../../modules/users/entities/user.entity.js';
+
 
 /**
  * Identifies the caller through the x-user header.
@@ -15,7 +16,7 @@ import { User } from '../../modules/users/user.js';
 export class UserGuard implements CanActivate {
   constructor(private readonly usersService: UsersService) {}
 
-  canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const xUser: string | undefined = request.headers['x-user'];
 
@@ -23,8 +24,7 @@ export class UserGuard implements CanActivate {
       throw new UnauthorizedException('The x-user header is missing');
     }
 
-    const user: User | undefined = this.usersService.findById(xUser);
-
+   const user: User | undefined = await this.usersService.findById(xUser); // <- Agregado 'await'
     if (!user) {
       throw new UnauthorizedException(`User "${xUser}" does not exist`);
     }

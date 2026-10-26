@@ -7,7 +7,8 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from '../decorators/roles.decorator.js';
-import { User } from '../../modules/users/user.js';
+import { User } from '../../modules/users/entities/user.entity.js';
+
 
 /**
  * Applies the roles declared with @Roles(...) on the endpoint.

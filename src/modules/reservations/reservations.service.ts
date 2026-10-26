@@ -10,7 +10,8 @@ import { FindOptionsWhere, Repository } from 'typeorm';
 import { Role } from '../../common/enums/role.enum.js';
 import { ReceptionistsService } from '../receptionists/receptionists.service.js';
 import { RoomsService } from '../rooms/rooms.service.js';
-import { User } from '../users/user.js';
+import { User } from '../users/entities/user.entity.js';
+
 import { UsersService } from '../users/users.service.js';
 import { CreateReservationDto } from './dto/create-reservation.dto.js';
 import { FilterReservationsDto } from './dto/filter-reservations.dto.js';
@@ -100,8 +101,7 @@ export class ReservationsService {
       );
     }
 
-    if (dto.status === ReservationStatus.CANCELLED && !canCancel(user.role)) {
-      throw new ForbiddenException(
+    if (dto.status === ReservationStatus.CANCELLED && !canCancel(user.role as Role)) {  throw new ForbiddenException(
         `Role "${user.role}" cannot cancel reservations: this action belongs to admin and coordinator`,
       );
     }
@@ -164,7 +164,7 @@ export class ReservationsService {
   }
 
   private assertOwnership(reservation: Reservation, user: User): void {
-    if (!isOwner(user.role, reservation.receptionistId, user.receptionistId)) {
+    if (!isOwner(user.role as Role, reservation.receptionistId, user.receptionistId)) {
       throw new ForbiddenException(
         'You are not allowed to access this reservation: it is not assigned to your user',
       );

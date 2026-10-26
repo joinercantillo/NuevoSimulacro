@@ -27,7 +27,8 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator.js';
 import { Roles } from '../../common/decorators/roles.decorator.js';
 import { ErrorResponseDto } from '../../common/dto/error-response.dto.js';
 import { Role } from '../../common/enums/role.enum.js';
-import type { User } from '../users/user.js';
+import type { User } from '../users/entities/user.entity.js';
+
 import { CreateReservationDto } from './dto/create-reservation.dto.js';
 import { FilterReservationsDto } from './dto/filter-reservations.dto.js';
 import { UpdateStatusDto } from './dto/update-status.dto.js';
