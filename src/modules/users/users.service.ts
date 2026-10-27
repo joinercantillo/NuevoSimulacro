@@ -21,7 +21,6 @@ export class UsersService {
     const salt = await bcrypt.genSalt(10);
     const hash = await bcrypt.hash(createUserDto.passwordPlana, salt);
 
-    // CORREGIDO AQUÍ: usersRepository (en inglés) para que coincida con el constructor
     const newUser = this.usersRepository.create({
       username: createUserDto.username,
       name: createUserDto.name,
@@ -42,6 +41,12 @@ export class UsersService {
     return user;
   }
 
+  async findById(id: any): Promise<User | undefined> {
+    const numericId = isNaN(Number(id)) ? 0 : Number(id);
+    const user = await this.usersRepository.findOneBy({ id: numericId });
+    return user || undefined;
+  }
+
   async findByUsernameWithPassword(username: string): Promise<User | null> {
     return this.usersRepository.findOne({
       where: { username },
@@ -55,19 +60,6 @@ export class UsersService {
     });
   }
 
-  async remove(id: number): Promise<void> {
-    const user = await this.findOne(id);
-    await this.usersRepository.remove(user);
-  }
-    // Busca un usuario por su ID (usado por el guardián de usuarios)
-  async findById(id: any): Promise<User | undefined> {
-    // Si el ID viene como string del x-user antiguo, intentamos convertirlo o buscarlo directamente
-    const numericId = isNaN(Number(id)) ? 0 : Number(id);
-    const user = await this.usersRepository.findOneBy({ id: numericId });
-    return user || undefined;
-  }
-
-  // Busca una recepcionista por su ID de usuario (usado por reservaciones)
   async findReceptionistByReceptionistId(receptionistId: any): Promise<User | undefined> {
     const numericId = isNaN(Number(receptionistId)) ? 0 : Number(receptionistId);
     const user = await this.usersRepository.findOneBy({ 
@@ -77,4 +69,8 @@ export class UsersService {
     return user || undefined;
   }
 
+  async remove(id: number): Promise<void> {
+    const user = await this.findOne(id);
+    await this.usersRepository.remove(user);
+  }
 }

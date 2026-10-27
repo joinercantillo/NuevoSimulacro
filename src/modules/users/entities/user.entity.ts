@@ -14,13 +14,12 @@ export class User {
   @Column()
   role: string; // 'admin', 'coordinador', 'recepcionista'
 
-  @Column({ select: false })
+  @Column({ select: false }) // Oculta el hash por defecto en consultas select globales
   passwordHash: string;
 
   @CreateDateColumn()
   createdAt: Date;
 
-  // AGREGADO AQUÍ: Mapea dinámicamente receptionistId usando el ID del usuario
   get receptionistId(): number {
     return this.id;
   }

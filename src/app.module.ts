@@ -14,6 +14,7 @@ import { ReceptionistsModule } from './modules/receptionists/receptionists.modul
 import { ReservationsModule } from './modules/reservations/reservations.module.js';
 import { RoomsModule } from './modules/rooms/rooms.module.js';
 import { UsersModule } from './modules/users/users.module.js';
+import { AuthModule } from './modules/auth/auth.module.js';
 
 @Module({
   imports: [
@@ -39,6 +40,8 @@ import { UsersModule } from './modules/users/users.module.js';
     RoomsModule,
     ReceptionistsModule,
     ReservationsModule,
+    AuthModule,
+    
   ],
   providers: [
     // Order matters: API key first, identity second, roles last.

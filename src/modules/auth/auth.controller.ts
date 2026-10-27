@@ -1,10 +1,10 @@
-// src/modules/auth/auth.controller.ts
 import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
 import { AuthService } from './auth.service.js';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
-import { LoginDto } from './dto/login.dto.js'; // Asegúrate de crear este DTO con username y password
+import { ApiTags, ApiOperation, ApiSecurity } from '@nestjs/swagger';
+import { LoginDto } from './dto/login.dto.js';
 
 @ApiTags('Authentication')
+@ApiSecurity('api-key-auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -16,4 +16,3 @@ export class AuthController {
     return this.authService.login(loginDto.username, loginDto.passwordOrPlana);
   }
 }
-

@@ -1,35 +1,27 @@
-import {
-  CanActivate,
-  ExecutionContext,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+// src/common/guards/user.guard.ts
+import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { UsersService } from '../../modules/users/users.service.js';
-import { User } from '../../modules/users/entities/user.entity.js';
+import { User } from '../../modules/users/entities/user.entity.js'; // <- Ruta relativa corregida
 
-
-/**
- * Identifies the caller through the x-user header.
- * The role always comes from the server: a role sent by the client is never trusted.
- */
 @Injectable()
-export class UserGuard implements CanActivate {
+export class UserGuard implements CanActivate { // <- Nombre de clase corregido para app.module.ts
   constructor(private readonly usersService: UsersService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const xUser: string | undefined = request.headers['x-user'];
+    const xUser = request.headers['x-user'];
 
     if (!xUser) {
-      throw new UnauthorizedException('The x-user header is missing');
+      return false;
     }
 
-   const user: User | undefined = await this.usersService.findById(xUser); // <- Agregado 'await'
+    const user: User | undefined = await this.usersService.findById(xUser); 
+
     if (!user) {
-      throw new UnauthorizedException(`User "${xUser}" does not exist`);
+      return false;
     }
 
-    request.user = user;
+    request.user = user; 
     return true;
   }
 }
