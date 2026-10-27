@@ -4,7 +4,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Role } from '../../common/enums/role.enum.js';
-import { ReceptionistsService } from '../receptionists/receptionists.service.js';
+import { ReceptionistsService } from '../mechanics/mechanichs.service.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
 import { User } from './entities/user.entity.js';

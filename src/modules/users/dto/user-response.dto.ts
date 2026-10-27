@@ -12,7 +12,7 @@ export class UserResponseDto {
   @ApiProperty({ example: 'Maria Rojas (Via 40 branch)', description: 'Display name' })
   name: string;
 
-  @ApiProperty({ enum: Role, example: Role.RECEPTIONIST, description: 'Permissions of the user' })
+  @ApiProperty({ enum: Role, example: Role.TECHNICIAN, description: 'Permissions of the user' })
   role: Role;
 
   @ApiPropertyOptional({

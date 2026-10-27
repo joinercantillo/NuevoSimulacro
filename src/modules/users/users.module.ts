@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ReceptionistsModule } from '../receptionists/receptionists.module.js';
+import { ReceptionistsModule } from '../mechanics/mechanichs.module.js';
 import { User } from './entities/user.entity.js';
 import { UsersController } from './users.controller.js';
 import { USER_DIRECTORY } from './user-directory.interface.js';

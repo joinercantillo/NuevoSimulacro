@@ -22,7 +22,7 @@ export class CreateUserDto {
   @MaxLength(100, { message: 'name cannot exceed 100 characters' })
   name: string;
 
-  @ApiProperty({ enum: Role, example: Role.RECEPTIONIST, description: 'Permissions of the user' })
+  @ApiProperty({ enum: Role, example: Role.TECHNICIAN, description: 'Permissions of the user' })
   @IsEnum(Role, { message: 'role must be admin, coordinator or receptionist' })
   role: Role;
 

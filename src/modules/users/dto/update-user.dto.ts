@@ -16,9 +16,9 @@ export class UpdateUserDto {
   @MaxLength(100, { message: 'name cannot exceed 100 characters' })
   name?: string;
 
-  @ApiPropertyOptional({ enum: Role, example: Role.COORDINATOR })
+  @ApiPropertyOptional({ enum: Role, example: Role.TECHNICIAN })
   @IsOptional()
-  @IsEnum(Role, { message: 'role must be admin, coordinator or receptionist' })
+  @IsEnum(Role, { message: 'role must be admin or technician' })
   role?: Role;
 
   @ApiPropertyOptional({ example: 2, description: 'Row in the receptionists table' })

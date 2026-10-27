@@ -9,10 +9,10 @@ import { UserGuard } from './common/guards/user.guard.js';
 import { DatabaseModule } from './database/database.module.js';
 import { EnvConfig } from './config/env.config.js';
 import { envValidationSchema } from './config/env.validation.schema.js';
-import { HotelsModule } from './modules/hotels/hotels.module.js';
-import { ReceptionistsModule } from './modules/receptionists/receptionists.module.js';
-import { ReservationsModule } from './modules/reservations/reservations.module.js';
-import { RoomsModule } from './modules/rooms/rooms.module.js';
+import { HotelsModule } from './modules/workshops/workshops.module.js';
+import { ReceptionistsModule } from './modules/mechanics/mechanichs.module.js';
+import { ReservationsModule } from './modules/maintenances/maintenances.module.js';
+import { RoomsModule } from './modules/cars/cars.module.js';
 import { UsersModule } from './modules/users/users.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
 

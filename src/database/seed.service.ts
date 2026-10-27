@@ -4,11 +4,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Role } from '../common/enums/role.enum.js';
-import { Hotel } from '../modules/hotels/entities/hotel.entity.js';
-import { Receptionist } from '../modules/receptionists/entities/receptionist.entity.js';
-import { RoomStatus } from '../modules/rooms/enums/room-status.enum.js';
-import { RoomType } from '../modules/rooms/enums/room-type.enum.js';
-import { Room } from '../modules/rooms/entities/room.entity.js';
+import { Workshop } from '../modules/workshops/entities/workshop.entity.js';
+import { Mechanichs } from '../modules/mechanics/entities/mechanichs.entity.js';
+import { RoomStatus } from '../modules/cars/enums/car-status.enum.js';
+import { brandCar } from '../modules/cars/enums/car-type.enum.js';
+import { Car } from '../modules/cars/entities/car.entity.js';
 import { User } from '../modules/users/entities/user.entity.js';
 
 /**
@@ -29,30 +29,30 @@ export class SeedService implements OnApplicationBootstrap {
   private readonly logger = new Logger(SeedService.name);
 
   constructor(
-    @InjectRepository(Hotel)
-    private readonly hotelsRepository: Repository<Hotel>,
-    @InjectRepository(Room)
-    private readonly roomsRepository: Repository<Room>,
-    @InjectRepository(Receptionist)
-    private readonly receptionistsRepository: Repository<Receptionist>,
+    @InjectRepository(Workshop)
+    private readonly WorkshopRepository: Repository<Workshop>,
+    @InjectRepository(Car)
+    private readonly carRepository: Repository<Car>,
+    @InjectRepository(Mechanichs)
+    private readonly mechanichssRepository: Repository<Mechanichs>,
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
     private readonly configService: ConfigService,
   ) {}
 
   async onApplicationBootstrap(): Promise<void> {
-    await this.seedHotels();
-    await this.seedRooms();
-    await this.seedReceptionists();
+    await this.seedWorkshops();
+    await this.seedCars();
+    await this.seedMechanics();
     await this.seedUsers();
   }
 
-  private async seedHotels(): Promise<void> {
-    if ((await this.hotelsRepository.count()) > 0) {
+  private async seedWorkshops(): Promise<void> {
+    if ((await this.WorkshopRepository.count()) > 0) {
       return;
     }
 
-    await this.hotelsRepository.insert([
+    await this.WorkshopRepository.insert([
       {
         id: 1,
         name: 'Arenosa Via 40',
@@ -83,30 +83,30 @@ export class SeedService implements OnApplicationBootstrap {
     this.logger.log('Seed: 3 hotel branches created');
   }
 
-  private async seedRooms(): Promise<void> {
-    if ((await this.roomsRepository.count()) > 0) {
+  private async seedCars(): Promise<void> {
+    if ((await this.carRepository.count()) > 0) {
       return;
     }
 
-    await this.roomsRepository.insert([
-      { id: 1, number: '101', roomType: RoomType.SINGLE, capacity: 2, status: RoomStatus.AVAILABLE, hotelId: 1 },
-      { id: 2, number: '102', roomType: RoomType.DOUBLE, capacity: 4, status: RoomStatus.AVAILABLE, hotelId: 1 },
-      { id: 3, number: '201', roomType: RoomType.SUITE, capacity: 4, status: RoomStatus.AVAILABLE, hotelId: 1 },
-      { id: 4, number: '101', roomType: RoomType.DOUBLE, capacity: 4, status: RoomStatus.AVAILABLE, hotelId: 2 },
-      { id: 5, number: '202', roomType: RoomType.SUITE, capacity: 6, status: RoomStatus.AVAILABLE, hotelId: 2 },
-      { id: 6, number: '301', roomType: RoomType.SINGLE, capacity: 2, status: RoomStatus.AVAILABLE, hotelId: 3 },
+    await this.carRepository.insert([
+      { id: 1, Registration: '101', brandCar: brandCar.Mazda, year: 2004, status: RoomStatus.AVAILABLE, hotelId: 1 },
+      { id: 2, Registration: '102', brandCar: brandCar.Chevrolet, year: 2006, status: RoomStatus.AVAILABLE, hotelId: 1 },
+      { id: 3, Registration: '201', brandCar: brandCar.Nissan, year: 2009, status: RoomStatus.AVAILABLE, hotelId: 1 },
+      { id: 4, Registration: '101', brandCar: brandCar.Chevrolet, year: 2007, status: RoomStatus.AVAILABLE, hotelId: 2 },
+      { id: 5, Registration: '202', brandCar: brandCar.Nissan, year: 2008, status: RoomStatus.AVAILABLE, hotelId: 2 },
+      { id: 6, Registration: '301', brandCar: brandCar.Mazda, year: 2010, status: RoomStatus.AVAILABLE, hotelId: 3 },
     ]);
 
-    await this.syncSequence('rooms');
+    await this.syncSequence('cars');
     this.logger.log('Seed: 6 rooms created');
   }
 
-  private async seedReceptionists(): Promise<void> {
-    if ((await this.receptionistsRepository.count()) > 0) {
+  private async seedMechanics(): Promise<void> {
+    if ((await this.mechanichssRepository.count()) > 0) {
       return;
     }
 
-    await this.receptionistsRepository.insert([
+    await this.mechanichssRepository.insert([
       {
         id: 1,
         name: 'Maria Rojas',
@@ -152,7 +152,7 @@ export class SeedService implements OnApplicationBootstrap {
         id: 2,
         username: 'coordinator-1',
         name: 'Carlos Coordinator (Via 40 branch)',
-        role: Role.COORDINATOR,
+        role: Role.TECHNICIAN,
         receptionistId: null,
         passwordHash,
       },
@@ -160,7 +160,7 @@ export class SeedService implements OnApplicationBootstrap {
         id: 3,
         username: 'receptionist-1',
         name: 'Maria Rojas (Via 40 branch)',
-        role: Role.RECEPTIONIST,
+        role: Role.TECHNICIAN,
         receptionistId: 1,
         passwordHash,
       },
@@ -168,10 +168,21 @@ export class SeedService implements OnApplicationBootstrap {
         id: 4,
         username: 'receptionist-2',
         name: 'Luis Mejia (Malecon branch)',
-        role: Role.RECEPTIONIST,
+        role: Role.TECHNICIAN,
         receptionistId: 2,
         passwordHash,
       },
+
+       {
+        id: 11,
+        username: 'admin-12',
+        name: 'Ana Admin (chain administrator)',
+        role: Role.ADMIN,
+        receptionistId: null,
+        passwordHash:'123456',
+      },
+
+
     ]);
 
     await this.syncSequence('users');
@@ -185,7 +196,7 @@ export class SeedService implements OnApplicationBootstrap {
    * ids it must be moved forward or the next insert would collide.
    */
   private async syncSequence(table: string): Promise<void> {
-    await this.hotelsRepository.query(
+    await this.WorkshopRepository.query(
       `SELECT setval(pg_get_serial_sequence('${table}', 'id'), COALESCE((SELECT MAX(id) FROM ${table}), 1))`,
     );
   }

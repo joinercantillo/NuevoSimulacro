@@ -8,7 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Role } from '../../common/enums/role.enum.js';
-import { ReceptionistsService } from '../receptionists/receptionists.service.js';
+import { ReceptionistsService } from '../mechanics/mechanichs.service.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
 import { User } from './entities/user.entity.js';
@@ -72,7 +72,7 @@ export class UsersService implements UserDirectory {
     const nextReceptionistId =
       updateUserDto.receptionistId !== undefined
         ? updateUserDto.receptionistId
-        : updateUserDto.role !== undefined && updateUserDto.role !== Role.RECEPTIONIST
+        : updateUserDto.role !== undefined && updateUserDto.role !== Role.TECHNICIAN
           ? null
           : user.receptionistId;
 
@@ -130,7 +130,7 @@ export class UsersService implements UserDirectory {
   ): Promise<User | undefined> {
     const user = await this.usersRepository.findOneBy({
       receptionistId,
-      role: Role.RECEPTIONIST,
+      role: Role.TECHNICIAN,
     });
     return user ?? undefined;
   }
@@ -140,7 +140,7 @@ export class UsersService implements UserDirectory {
     role: Role,
     receptionistId: number | undefined,
   ): Promise<void> {
-    if (role !== Role.RECEPTIONIST) {
+    if (role !== Role.TECHNICIAN) {
       if (receptionistId !== undefined) {
         throw new BadRequestException(
           'receptionistId is only valid when the role is "receptionist"',

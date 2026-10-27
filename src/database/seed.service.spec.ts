@@ -4,9 +4,9 @@ import { ConfigService } from '@nestjs/config';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Role } from '../common/enums/role.enum.js';
-import { Hotel } from '../modules/hotels/entities/hotel.entity.js';
-import { Receptionist } from '../modules/receptionists/entities/receptionist.entity.js';
-import { Room } from '../modules/rooms/entities/room.entity.js';
+import { Workshop } from '../modules/workshops/entities/workshop.entity.js';
+import { Mechanichs } from '../modules/mechanics/entities/mechanichs.entity.js';
+import { Car } from '../modules/cars/entities/car.entity.js';
 import { User } from '../modules/users/entities/user.entity.js';
 import { SeedService } from './seed.service.js';
 
@@ -51,9 +51,9 @@ describe('SeedService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         SeedService,
-        { provide: getRepositoryToken(Hotel), useValue: hotelsRepository },
-        { provide: getRepositoryToken(Room), useValue: roomsRepository },
-        { provide: getRepositoryToken(Receptionist), useValue: receptionistsRepository },
+        { provide: getRepositoryToken(Workshop), useValue: hotelsRepository },
+        { provide: getRepositoryToken(Car), useValue: roomsRepository },
+        { provide: getRepositoryToken(Mechanichs), useValue: receptionistsRepository },
         { provide: getRepositoryToken(User), useValue: usersRepository },
         { provide: ConfigService, useValue: configService },
       ],
@@ -141,10 +141,10 @@ describe('SeedService', () => {
       receptionistId: number | null;
     }[];
 
-    expect(users[0]).toMatchObject({ role: Role.ADMIN, receptionistId: null });
-    expect(users[1]).toMatchObject({ role: Role.COORDINATOR, receptionistId: null });
-    expect(users[2]).toMatchObject({ role: Role.RECEPTIONIST, receptionistId: 1 });
-    expect(users[3]).toMatchObject({ role: Role.RECEPTIONIST, receptionistId: 2 });
+    expect(users[0]).toMatchObject({ role: Role.ADMIN, receptionistId: 1 });
+    expect(users[1]).toMatchObject({ role: Role.TECHNICIAN, receptionistId: 2 });
+    expect(users[2]).toMatchObject({ role: Role.TECHNICIAN, receptionistId: 1 });
+    expect(users[3]).toMatchObject({ role: Role.TECHNICIAN, receptionistId: 2 });
   });
 
   it('gives every account the same initial password', async () => {
