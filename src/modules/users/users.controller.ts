@@ -5,6 +5,7 @@ import { UsersService } from './users.service.js';
 import { CreateUserDto } from './dto/create-user.dto.js'; 
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiSecurity } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
+import { Public } from '../../common/decorators/public.decorator.js';
 
 @ApiTags('Users')
 @ApiSecurity('api-key-auth')
@@ -12,6 +13,7 @@ import { AuthGuard } from '@nestjs/passport';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @Public()
   @Post()
   create(@Body() createUserDto: CreateUserDto) { // <- Aquí ya no fallará
     return this.usersService.create(createUserDto);

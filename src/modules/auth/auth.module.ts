@@ -12,7 +12,7 @@ import { JwtStrategy } from './jwt.strategy.js';
     UsersModule, // 👈 ¡ESTA IMPORTACIÓN CONECTA AMBOS MÓDULOS!
     PassportModule,
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'CLAVE_SECRETA_SUPER_SEGURA',
+      secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: '1h' },
     }),
   ],
