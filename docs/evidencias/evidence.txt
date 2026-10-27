@@ -1,0 +1,536 @@
+ARENOSA HOTELS S.A.S. - RESERVATIONS API
+Evidence of the business rules executed with curl
+Generated : 2026-10-26 22:15:11
+Base url  : http://localhost:3000
+API keys  : clave-via40-test, clave-malecon-test
+Database  : postgres@127.0.0.1:55440/reservations_db_test
+Every request sends the x-api-key header; the identity comes from x-user
+unless the case states otherwise.
+
+==========================================================================
+1. IDENTITY AND API KEY (RN-04)
+==========================================================================
+
+--------------------------------------------------------------------------
+[01] GET /hotels without the x-api-key header
+Expected HTTP 401 | Received HTTP 401 | OK
+$ curl -i -X GET -H "x-user: admin-1"
+HTTP/1.1 401 Unauthorized
+{"success":false,"statusCode":401,"message":"The x-api-key header is missing","error":"Unauthorized","path":"/hotels","timestamp":"2026-10-27T03:15:11.831Z"}
+
+--------------------------------------------------------------------------
+[02] GET /hotels with an API key that is not valid
+Expected HTTP 401 | Received HTTP 401 | OK
+$ curl -i -X GET -H "x-api-key: not-a-valid-key" -H "x-user: admin-1"
+HTTP/1.1 401 Unauthorized
+{"success":false,"statusCode":401,"message":"Invalid API key","error":"Unauthorized","path":"/hotels","timestamp":"2026-10-27T03:15:11.942Z"}
+
+--------------------------------------------------------------------------
+[03] GET /hotels without the x-user header
+Expected HTTP 401 | Received HTTP 401 | OK
+$ curl -i -X GET -H "x-api-key: clave-via40-test"
+HTTP/1.1 401 Unauthorized
+{"success":false,"statusCode":401,"message":"The x-user header is missing","error":"Unauthorized","path":"/hotels","timestamp":"2026-10-27T03:15:12.012Z"}
+
+--------------------------------------------------------------------------
+[04] GET /hotels with a user that does not exist
+Expected HTTP 401 | Received HTTP 401 | OK
+$ curl -i -X GET -H "x-api-key: clave-via40-test" -H "x-user: ghost-user"
+HTTP/1.1 401 Unauthorized
+{"success":false,"statusCode":401,"message":"User \"ghost-user\" does not exist","error":"Unauthorized","path":"/hotels","timestamp":"2026-10-27T03:15:12.086Z"}
+
+--------------------------------------------------------------------------
+[05] GET /hotels with a valid key and a valid user
+Expected HTTP 200 | Received HTTP 200 | OK
+$ curl -i -X GET -H "x-api-key: clave-via40-test" -H "x-user: admin-1"
+HTTP/1.1 200 OK
+{"success":true,"data":[{"id":1,"name":"Arenosa Via 40","location":"Via 40 corridor","address":"Via 40 # 45-21","city":"Barranquilla","active":true,"createdAt":"2026-10-27T03:15:11.390Z","updatedAt":"2026-10-27T03:15:11.390Z"},{"id":2,"name":"Arenosa Malecon","location":"Rio Riverwalk","address":"Calle 72 # 41-30","city":"Barranquilla","active":true,"createdAt":"2026-10-27T03:15:11.390Z","updatedAt":"2026-10-27T03:15:11.390Z"},{"id":3,"name":"Arenosa Norte","location":"North city","address":"Carrera 53 # 80-14","city":"Barranquilla","active":true,"createdAt":"2026-10-27T03:15:11.390Z","updatedAt":"2026-10-27T03:15:11.390Z"}]}
+
+==========================================================================
+2. MASTER DATA SEEDED IN POSTGRESQL
+==========================================================================
+
+--------------------------------------------------------------------------
+[06] GET /hotels - the three branches of the chain
+Expected HTTP 200 | Received HTTP 200 | OK
+$ curl -i -X GET -H "x-api-key: clave-via40-test" -H "x-user: admin-1"
+HTTP/1.1 200 OK
+{"success":true,"data":[{"id":1,"name":"Arenosa Via 40","location":"Via 40 corridor","address":"Via 40 # 45-21","city":"Barranquilla","active":true,"createdAt":"2026-10-27T03:15:11.390Z","updatedAt":"2026-10-27T03:15:11.390Z"},{"id":2,"name":"Arenosa Malecon","location":"Rio Riverwalk","address":"Calle 72 # 41-30","city":"Barranquilla","active":true,"createdAt":"2026-10-27T03:15:11.390Z","updatedAt":"2026-10-27T03:15:11.390Z"},{"id":3,"name":"Arenosa Norte","location":"North city","address":"Carrera 53 # 80-14","city":"Barranquilla","active":true,"createdAt":"2026-10-27T03:15:11.390Z","updatedAt":"2026-10-27T03:15:11.390Z"}]}
+
+--------------------------------------------------------------------------
+[07] GET /rooms - the six rooms with their branch
+Expected HTTP 200 | Received HTTP 200 | OK
+$ curl -i -X GET -H "x-api-key: clave-via40-test" -H "x-user: admin-1"
+HTTP/1.1 200 OK
+{"success":true,"data":[{"id":1,"number":"101","roomType":"SINGLE","capacity":2,"status":"AVAILABLE","hotelId":1,"createdAt":"2026-10-27T03:15:11.405Z","updatedAt":"2026-10-27T03:15:11.405Z","hotel":{"id":1,"name":"Arenosa Via 40","location":"Via 40 corridor","address":"Via 40 # 45-21","city":"Barranquilla","active":true,"createdAt":"2026-10-27T03:15:11.390Z","updatedAt":"2026-10-27T03:15:11.390Z"}},{"id":2,"number":"102","roomType":"DOUBLE","capacity":4,"status":"AVAILABLE","hotelId":1,"createdAt":"2026-10-27T03:15:11.405Z","updatedAt":"2026-10-27T03:15:11.405Z","hotel":{"id":1,"name":"Arenosa Via 40","location":"Via 40 corridor","address":"Via 40 # 45-21","city":"Barranquilla","active":true,"createdAt":"2026-10-27T03:15:11.390Z","updatedAt":"2026-10-27T03:15:11.390Z"}},{"id":3,"number":"201","roomType":"SUITE","capacity":4,"status":"AVAILABLE","hotelId":1,"createdAt":"2026-10-27T03:15:11.405Z","updatedAt":"2026-10-27T03:15:11.405Z","hotel":{"id":1,"name":"Arenosa Via 40","location":"Via 40 corridor","address":"Via 40 # 45-21","city":"Barranquilla","active":true,"createdAt":"2026-10-27T03:15:11.390Z","updatedAt":"2026-10-27T03:15:11.390Z"}},{"id":4,"number":"101","roomType":"DOUBLE","capacity":4,"status":"AVAILABLE","hotelId":2,"createdAt":"2026-10-27T03:15:11.405Z","updatedAt":"2026-10-27T03:15:11.405Z","hotel":{"id":2,"name":"Arenosa Malecon","location":"Rio Riverwalk","address":"Calle 72 # 41-30","city":"Barranquilla","active":true,"createdAt":"2026-10-27T03:15:11.390Z","updatedAt":"2026-10-27T03:15:11.390Z"}},{"id":5,"number":"202","roomType":"SUITE","capacity":6,"status":"AVAILABLE","hotelId":2,"createdAt":"2026-10-27T03:15:11.405Z","updatedAt":"2026-10-27T03:15:11.405Z","hotel":{"id":2,"name":"Arenosa Malecon","location":"Rio Riverwalk","address":"Calle 72 # 41-30","city":"Barranquilla","active":true,"createdAt":"2026-10-27T03:15:11.390Z","updatedAt":"2026-10-27T03:15:11.390Z"}},{"id":6,"number":"301","roomType":"SINGLE","capacity":2,"status":"AVAILABLE","hotelId":3,"createdAt":"2026-10-27T03:15:11.405Z","updatedAt":"2026-10-27T03:15:11.405Z","hotel":{"id":3,"name":"Arenosa Norte","location":"North city","address":"Carrera 53 # 80-14","city":"Barranquilla","active":true,"createdAt":"2026-10-27T03:15:11.390Z","updatedAt":"2026-10-27T03:15:11.390Z"}}]}
+
+--------------------------------------------------------------------------
+[08] GET /receptionists - the receptionists referenced by the reservations
+Expected HTTP 200 | Received HTTP 200 | OK
+$ curl -i -X GET -H "x-api-key: clave-via40-test" -H "x-user: admin-1"
+HTTP/1.1 200 OK
+{"success":true,"data":[{"id":1,"name":"Maria Rojas","document":"12345678","phone":"3001234567","email":"maria.rojas@arenosa.example","active":true,"createdAt":"2026-10-27T03:15:11.415Z","updatedAt":"2026-10-27T03:15:11.415Z"},{"id":2,"name":"Luis Mejia","document":"87654321","phone":"3007654321","email":"luis.mejia@arenosa.example","active":true,"createdAt":"2026-10-27T03:15:11.415Z","updatedAt":"2026-10-27T03:15:11.415Z"}]}
+
+==========================================================================
+3. AUTHENTICATION (JWT ISSUED BY POST /AUTH/LOGIN)
+==========================================================================
+
+--------------------------------------------------------------------------
+[09] POST /auth/login with the credentials of the seed
+Expected HTTP 200 | Received HTTP 200 | OK
+$ curl -i -X POST -H "x-api-key: clave-via40-test" -H "Content-Type: application/json" -d '{"username":"admin-1","password":"Carnaval2026"}'
+HTTP/1.1 200 OK
+{"success":true,"data":{"access_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsInVzZXJuYW1lIjoiYWRtaW4tMSIsIm5hbWUiOiJBbmEgQWRtaW4gKGNoYWluIGFkbWluaXN0cmF0b3IpIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzkzMDcwOTEyLCJleHAiOjE3OTMwNzQ1MTJ9.LBkX9fYemDpb1Ozv9iHJY_cRoAIvbAL2YI6chfQpUoA","token_type":"Bearer","expires_in":"1h","user":{"id":1,"username":"admin-1","name":"Ana Admin (chain administrator)","role":"admin"}}}
+
+--------------------------------------------------------------------------
+[10] POST /auth/login with a wrong password
+Expected HTTP 401 | Received HTTP 401 | OK
+$ curl -i -X POST -H "x-api-key: clave-via40-test" -H "Content-Type: application/json" -d '{"username":"admin-1","password":"not-the-password"}'
+HTTP/1.1 401 Unauthorized
+{"success":false,"statusCode":401,"message":"Invalid credentials","error":"Unauthorized","path":"/auth/login","timestamp":"2026-10-27T03:15:13.022Z"}
+
+--------------------------------------------------------------------------
+[11] POST /auth/login with a user that does not exist (same message)
+Expected HTTP 401 | Received HTTP 401 | OK
+$ curl -i -X POST -H "x-api-key: clave-via40-test" -H "Content-Type: application/json" -d '{"username":"ghost-user","password":"Carnaval2026"}'
+HTTP/1.1 401 Unauthorized
+{"success":false,"statusCode":401,"message":"Invalid credentials","error":"Unauthorized","path":"/auth/login","timestamp":"2026-10-27T03:15:13.106Z"}
+
+--------------------------------------------------------------------------
+[12] POST /auth/login without the password (invalid DTO)
+Expected HTTP 400 | Received HTTP 400 | OK
+$ curl -i -X POST -H "x-api-key: clave-via40-test" -H "Content-Type: application/json" -d '{"username":"admin-1"}'
+HTTP/1.1 400 Bad Request
+{"success":false,"statusCode":400,"message":"The request payload is invalid","error":"Bad Request","path":"/auth/login","timestamp":"2026-10-27T03:15:13.187Z","details":["password is required","password must be a string"]}
+
+--------------------------------------------------------------------------
+[13] POST /auth/login still requires the API key
+Expected HTTP 401 | Received HTTP 401 | OK
+$ curl -i -X POST -H "Content-Type: application/json" -d '{"username":"admin-1","password":"Carnaval2026"}'
+HTTP/1.1 401 Unauthorized
+{"success":false,"statusCode":401,"message":"The x-api-key header is missing","error":"Unauthorized","path":"/auth/login","timestamp":"2026-10-27T03:15:13.292Z"}
+
+--------------------------------------------------------------------------
+[14] GET /auth/profile with the token of the seed
+Expected HTTP 200 | Received HTTP 200 | OK
+$ curl -i -X GET -H "Authorization: Bearer <token>" -H "x-api-key: clave-via40-test"
+HTTP/1.1 200 OK
+{"success":true,"data":{"id":1,"username":"admin-1","name":"Ana Admin (chain administrator)","role":"admin"}}
+
+--------------------------------------------------------------------------
+[15] GET /auth/profile without a token (the API key is still required)
+Expected HTTP 401 | Received HTTP 401 | OK
+$ curl -i -X GET -H "x-api-key: clave-via40-test"
+HTTP/1.1 401 Unauthorized
+{"success":false,"statusCode":401,"message":"Unauthorized","error":"UNAUTHORIZED","path":"/auth/profile","timestamp":"2026-10-27T03:15:13.436Z"}
+
+--------------------------------------------------------------------------
+[16] GET /auth/profile with a broken signature
+Expected HTTP 401 | Received HTTP 401 | OK
+$ curl -i -X GET -H "Authorization: Bearer <token>" -H "x-api-key: clave-via40-test"
+HTTP/1.1 401 Unauthorized
+{"success":false,"statusCode":401,"message":"Unauthorized","error":"UNAUTHORIZED","path":"/auth/profile","timestamp":"2026-10-27T03:15:13.506Z"}
+
+==========================================================================
+4. REGISTER A RESERVATION (RN-01)
+==========================================================================
+
+--------------------------------------------------------------------------
+[17] A receptionist registers on their own behalf
+Expected HTTP 201 | Received HTTP 201 | OK
+$ curl -i -X POST -H "x-api-key: clave-via40-test" -H "x-user: receptionist-1" -H "Content-Type: application/json" -d '{"guest":"Juan Perez","guestDocument":"12345678","roomType":"SINGLE","checkInDate":"2026-11-05","checkOutDate":"2026-11-09","roomId":1}'
+HTTP/1.1 201 Created
+{"success":true,"data":{"id":1,"guest":"Juan Perez","guestDocument":"12345678","roomType":"SINGLE","checkInDate":"2026-11-05","checkOutDate":"2026-11-09","receptionistId":1,"roomId":1,"status":"PENDING","createdAt":"2026-10-27T03:15:13.617Z","updatedAt":"2026-10-27T03:15:13.617Z"}}
+
+--------------------------------------------------------------------------
+[18] The receptionistId sent by a receptionist is ignored
+Expected HTTP 201 | Received HTTP 201 | OK
+$ curl -i -X POST -H "x-api-key: clave-via40-test" -H "x-user: receptionist-1" -H "Content-Type: application/json" -d '{"guest":"Juan Perez","guestDocument":"12345678","roomType":"SINGLE","checkInDate":"2026-11-25","checkOutDate":"2026-11-29","roomId":1,"receptionistId":2}'
+HTTP/1.1 201 Created
+{"success":true,"data":{"id":2,"guest":"Juan Perez","guestDocument":"12345678","roomType":"SINGLE","checkInDate":"2026-11-25","checkOutDate":"2026-11-29","receptionistId":1,"roomId":1,"status":"PENDING","createdAt":"2026-10-27T03:15:13.714Z","updatedAt":"2026-10-27T03:15:13.714Z"}}
+
+--------------------------------------------------------------------------
+[19] A coordinator registers a reservation for receptionist 1
+Expected HTTP 201 | Received HTTP 201 | OK
+$ curl -i -X POST -H "x-api-key: clave-via40-test" -H "x-user: coordinator-1" -H "Content-Type: application/json" -d '{"guest":"Juan Perez","guestDocument":"12345678","roomType":"DOUBLE","checkInDate":"2026-11-05","checkOutDate":"2026-11-09","roomId":2,"receptionistId":1}'
+HTTP/1.1 201 Created
+{"success":true,"data":{"id":3,"guest":"Juan Perez","guestDocument":"12345678","roomType":"DOUBLE","checkInDate":"2026-11-05","checkOutDate":"2026-11-09","receptionistId":1,"roomId":2,"status":"PENDING","createdAt":"2026-10-27T03:15:13.807Z","updatedAt":"2026-10-27T03:15:13.807Z"}}
+
+--------------------------------------------------------------------------
+[20] Receptionist 2 registers their own reservation
+Expected HTTP 201 | Received HTTP 201 | OK
+$ curl -i -X POST -H "x-api-key: clave-via40-test" -H "x-user: receptionist-2" -H "Content-Type: application/json" -d '{"guest":"Juan Perez","guestDocument":"12345678","roomType":"DOUBLE","checkInDate":"2026-11-05","checkOutDate":"2026-11-09","roomId":4,"receptionistId":99}'
+HTTP/1.1 201 Created
+{"success":true,"data":{"id":4,"guest":"Juan Perez","guestDocument":"12345678","roomType":"DOUBLE","checkInDate":"2026-11-05","checkOutDate":"2026-11-09","receptionistId":2,"roomId":4,"status":"PENDING","createdAt":"2026-10-27T03:15:13.893Z","updatedAt":"2026-10-27T03:15:13.893Z"}}
+
+--------------------------------------------------------------------------
+[21] A receptionist registers a second reservation
+Expected HTTP 201 | Received HTTP 201 | OK
+$ curl -i -X POST -H "x-api-key: clave-via40-test" -H "x-user: receptionist-1" -H "Content-Type: application/json" -d '{"guest":"Juan Perez","guestDocument":"12345678","roomType":"SUITE","checkInDate":"2026-11-05","checkOutDate":"2026-11-09","roomId":3}'
+HTTP/1.1 201 Created
+{"success":true,"data":{"id":5,"guest":"Juan Perez","guestDocument":"12345678","roomType":"SUITE","checkInDate":"2026-11-05","checkOutDate":"2026-11-09","receptionistId":1,"roomId":3,"status":"PENDING","createdAt":"2026-10-27T03:15:13.983Z","updatedAt":"2026-10-27T03:15:13.983Z"}}
+
+--------------------------------------------------------------------------
+[22] An admin must send receptionistId
+Expected HTTP 400 | Received HTTP 400 | OK
+$ curl -i -X POST -H "x-api-key: clave-via40-test" -H "x-user: admin-1" -H "Content-Type: application/json" -d '{"guest":"Juan Perez","guestDocument":"12345678","roomType":"SINGLE","checkInDate":"2026-11-05","checkOutDate":"2026-11-09","roomId":1}'
+HTTP/1.1 400 Bad Request
+{"success":false,"statusCode":400,"message":"The \"receptionistId\" field is required for admins and coordinators","error":"Bad Request","path":"/reservations","timestamp":"2026-10-27T03:15:14.070Z"}
+
+--------------------------------------------------------------------------
+[23] receptionistId that does not exist
+Expected HTTP 400 | Received HTTP 400 | OK
+$ curl -i -X POST -H "x-api-key: clave-via40-test" -H "x-user: admin-1" -H "Content-Type: application/json" -d '{"guest":"Juan Perez","guestDocument":"12345678","roomType":"SINGLE","checkInDate":"2026-11-05","checkOutDate":"2026-11-09","roomId":1,"receptionistId":999}'
+HTTP/1.1 400 Bad Request
+{"success":false,"statusCode":400,"message":"Receptionist with id \"999\" does not exist","error":"Bad Request","path":"/reservations","timestamp":"2026-10-27T03:15:14.144Z"}
+
+--------------------------------------------------------------------------
+[24] roomId that does not exist
+Expected HTTP 400 | Received HTTP 400 | OK
+$ curl -i -X POST -H "x-api-key: clave-via40-test" -H "x-user: admin-1" -H "Content-Type: application/json" -d '{"guest":"Juan Perez","guestDocument":"12345678","roomType":"SINGLE","checkInDate":"2026-11-05","checkOutDate":"2026-11-09","roomId":999,"receptionistId":1}'
+HTTP/1.1 400 Bad Request
+{"success":false,"statusCode":400,"message":"Room with id \"999\" does not exist","error":"Bad Request","path":"/reservations","timestamp":"2026-10-27T03:15:14.219Z"}
+
+--------------------------------------------------------------------------
+[25] Protected field (status) rejected by the ValidationPipe
+Expected HTTP 400 | Received HTTP 400 | OK
+$ curl -i -X POST -H "x-api-key: clave-via40-test" -H "x-user: admin-1" -H "Content-Type: application/json" -d '{"guest":"Juan Perez","guestDocument":"12345678","roomType":"SINGLE","checkInDate":"2026-11-05","checkOutDate":"2026-11-09","roomId":1,"receptionistId":1,"status":"CONFIRMED"}'
+HTTP/1.1 400 Bad Request
+{"success":false,"statusCode":400,"message":"The request payload is invalid","error":"Bad Request","path":"/reservations","timestamp":"2026-10-27T03:15:14.301Z","details":["property status should not exist"]}
+
+--------------------------------------------------------------------------
+[26] guestDocument that is not 6 to 12 digits
+Expected HTTP 400 | Received HTTP 400 | OK
+$ curl -i -X POST -H "x-api-key: clave-via40-test" -H "x-user: admin-1" -H "Content-Type: application/json" -d '{"guest":"Juan Perez","guestDocument":"12AB5678","roomType":"SINGLE","checkInDate":"2026-11-05","checkOutDate":"2026-11-09","roomId":1,"receptionistId":1}'
+HTTP/1.1 400 Bad Request
+{"success":false,"statusCode":400,"message":"The request payload is invalid","error":"Bad Request","path":"/reservations","timestamp":"2026-10-27T03:15:14.384Z","details":["guestDocument must contain digits only (between 6 and 12 characters)"]}
+
+--------------------------------------------------------------------------
+[27] roomType outside the catalogue
+Expected HTTP 400 | Received HTTP 400 | OK
+$ curl -i -X POST -H "x-api-key: clave-via40-test" -H "x-user: admin-1" -H "Content-Type: application/json" -d '{"guest":"Juan Perez","guestDocument":"12345678","roomType":"PENTHOUSE","checkInDate":"2026-11-05","checkOutDate":"2026-11-09","roomId":1,"receptionistId":1}'
+HTTP/1.1 400 Bad Request
+{"success":false,"statusCode":400,"message":"The request payload is invalid","error":"Bad Request","path":"/reservations","timestamp":"2026-10-27T03:15:14.466Z","details":["roomType must be SINGLE, DOUBLE or SUITE"]}
+
+--------------------------------------------------------------------------
+[28] checkOutDate before checkInDate
+Expected HTTP 400 | Received HTTP 400 | OK
+$ curl -i -X POST -H "x-api-key: clave-via40-test" -H "x-user: admin-1" -H "Content-Type: application/json" -d '{"guest":"Juan Perez","guestDocument":"12345678","roomType":"SINGLE","checkInDate":"2026-11-05","checkOutDate":"2026-10-21","roomId":1,"receptionistId":1}'
+HTTP/1.1 400 Bad Request
+{"success":false,"statusCode":400,"message":"The request payload is invalid","error":"Bad Request","path":"/reservations","timestamp":"2026-10-27T03:15:14.551Z","details":["checkOutDate must be after checkInDate"]}
+
+--------------------------------------------------------------------------
+[29] checkInDate in the past
+Expected HTTP 400 | Received HTTP 400 | OK
+$ curl -i -X POST -H "x-api-key: clave-via40-test" -H "x-user: admin-1" -H "Content-Type: application/json" -d '{"guest":"Juan Perez","guestDocument":"12345678","roomType":"SINGLE","checkInDate":"2026-10-16","checkOutDate":"2026-10-21","roomId":1,"receptionistId":1}'
+HTTP/1.1 400 Bad Request
+{"success":false,"statusCode":400,"message":"The request payload is invalid","error":"Bad Request","path":"/reservations","timestamp":"2026-10-27T03:15:14.634Z","details":["checkInDate cannot be in the past (received: 2026-10-16)"]}
+
+--------------------------------------------------------------------------
+[30] Date that is not ISO 8601
+Expected HTTP 400 | Received HTTP 400 | OK
+$ curl -i -X POST -H "x-api-key: clave-via40-test" -H "x-user: admin-1" -H "Content-Type: application/json" -d '{"guest":"Juan Perez","guestDocument":"12345678","roomType":"SINGLE","checkInDate":"13-02-2027","checkOutDate":"17-02-2027","roomId":1,"receptionistId":1}'
+HTTP/1.1 400 Bad Request
+{"success":false,"statusCode":400,"message":"The request payload is invalid","error":"Bad Request","path":"/reservations","timestamp":"2026-10-27T03:15:14.713Z","details":["checkInDate must be a valid ISO 8601 date","checkOutDate must be a valid ISO 8601 date"]}
+
+==========================================================================
+5. LIST THE RESERVATIONS (RN-02)
+==========================================================================
+
+--------------------------------------------------------------------------
+[31] GET /reservations as admin - every reservation of the chain
+Expected HTTP 200 | Received HTTP 200 | OK
+$ curl -i -X GET -H "x-api-key: clave-via40-test" -H "x-user: admin-1"
+HTTP/1.1 200 OK
+{"success":true,"data":[{"id":5,"guest":"Juan Perez","guestDocument":"12345678","roomType":"SUITE","checkInDate":"2026-11-05","checkOutDate":"2026-11-09","receptionistId":1,"roomId":3,"status":"PENDING","createdAt":"2026-10-27T03:15:13.983Z","updatedAt":"2026-10-27T03:15:13.983Z"},{"id":4,"guest":"Juan Perez","guestDocument":"12345678","roomType":"DOUBLE","checkInDate":"2026-11-05","checkOutDate":"2026-11-09","receptionistId":2,"roomId":4,"status":"PENDING","createdAt":"2026-10-27T03:15:13.893Z","updatedAt":"2026-10-27T03:15:13.893Z"},{"id":3,"guest":"Juan Perez","guestDocument":"12345678","roomType":"DOUBLE","checkInDate":"2026-11-05","checkOutDate":"2026-11-09","receptionistId":1,"roomId":2,"status":"PENDING","createdAt":"2026-10-27T03:15:13.807Z","updatedAt":"2026-10-27T03:15:13.807Z"},{"id":2,"guest":"Juan Perez","guestDocument":"12345678","roomType":"SINGLE","checkInDate":"2026-11-25","checkOutDate":"2026-11-29","receptionistId":1,"roomId":1,"status":"PENDING","createdAt":"2026-10-27T03:15:13.714Z","updatedAt":"2026-10-27T03:15:13.714Z"},{"id":1,"guest":"Juan Perez","guestDocument":"12345678","roomType":"SINGLE","checkInDate":"2026-11-05","checkOutDate":"2026-11-09","receptionistId":1,"roomId":1,"status":"PENDING","createdAt":"2026-10-27T03:15:13.617Z","updatedAt":"2026-10-27T03:15:13.617Z"}]}
+
+--------------------------------------------------------------------------
+[32] GET /reservations?status=PENDING - filter combined with the role
+Expected HTTP 200 | Received HTTP 200 | OK
+$ curl -i -X GET -H "x-api-key: clave-via40-test" -H "x-user: admin-1"
+HTTP/1.1 200 OK
+{"success":true,"data":[{"id":5,"guest":"Juan Perez","guestDocument":"12345678","roomType":"SUITE","checkInDate":"2026-11-05","checkOutDate":"2026-11-09","receptionistId":1,"roomId":3,"status":"PENDING","createdAt":"2026-10-27T03:15:13.983Z","updatedAt":"2026-10-27T03:15:13.983Z"},{"id":4,"guest":"Juan Perez","guestDocument":"12345678","roomType":"DOUBLE","checkInDate":"2026-11-05","checkOutDate":"2026-11-09","receptionistId":2,"roomId":4,"status":"PENDING","createdAt":"2026-10-27T03:15:13.893Z","updatedAt":"2026-10-27T03:15:13.893Z"},{"id":3,"guest":"Juan Perez","guestDocument":"12345678","roomType":"DOUBLE","checkInDate":"2026-11-05","checkOutDate":"2026-11-09","receptionistId":1,"roomId":2,"status":"PENDING","createdAt":"2026-10-27T03:15:13.807Z","updatedAt":"2026-10-27T03:15:13.807Z"},{"id":2,"guest":"Juan Perez","guestDocument":"12345678","roomType":"SINGLE","checkInDate":"2026-11-25","checkOutDate":"2026-11-29","receptionistId":1,"roomId":1,"status":"PENDING","createdAt":"2026-10-27T03:15:13.714Z","updatedAt":"2026-10-27T03:15:13.714Z"},{"id":1,"guest":"Juan Perez","guestDocument":"12345678","roomType":"SINGLE","checkInDate":"2026-11-05","checkOutDate":"2026-11-09","receptionistId":1,"roomId":1,"status":"PENDING","createdAt":"2026-10-27T03:15:13.617Z","updatedAt":"2026-10-27T03:15:13.617Z"}]}
+
+--------------------------------------------------------------------------
+[33] GET /reservations as receptionist 1 - only their own reservations
+Expected HTTP 200 | Received HTTP 200 | OK
+$ curl -i -X GET -H "x-api-key: clave-via40-test" -H "x-user: receptionist-1"
+HTTP/1.1 200 OK
+{"success":true,"data":[{"id":5,"guest":"Juan Perez","guestDocument":"12345678","roomType":"SUITE","checkInDate":"2026-11-05","checkOutDate":"2026-11-09","receptionistId":1,"roomId":3,"status":"PENDING","createdAt":"2026-10-27T03:15:13.983Z","updatedAt":"2026-10-27T03:15:13.983Z"},{"id":3,"guest":"Juan Perez","guestDocument":"12345678","roomType":"DOUBLE","checkInDate":"2026-11-05","checkOutDate":"2026-11-09","receptionistId":1,"roomId":2,"status":"PENDING","createdAt":"2026-10-27T03:15:13.807Z","updatedAt":"2026-10-27T03:15:13.807Z"},{"id":2,"guest":"Juan Perez","guestDocument":"12345678","roomType":"SINGLE","checkInDate":"2026-11-25","checkOutDate":"2026-11-29","receptionistId":1,"roomId":1,"status":"PENDING","createdAt":"2026-10-27T03:15:13.714Z","updatedAt":"2026-10-27T03:15:13.714Z"},{"id":1,"guest":"Juan Perez","guestDocument":"12345678","roomType":"SINGLE","checkInDate":"2026-11-05","checkOutDate":"2026-11-09","receptionistId":1,"roomId":1,"status":"PENDING","createdAt":"2026-10-27T03:15:13.617Z","updatedAt":"2026-10-27T03:15:13.617Z"}]}
+
+--------------------------------------------------------------------------
+[34] GET /reservations?status=INVALID - status outside the catalogue
+Expected HTTP 400 | Received HTTP 400 | OK
+$ curl -i -X GET -H "x-api-key: clave-via40-test" -H "x-user: admin-1"
+HTTP/1.1 400 Bad Request
+{"success":false,"statusCode":400,"message":"The request payload is invalid","error":"Bad Request","path":"/reservations?status=INVALID","timestamp":"2026-10-27T03:15:15.004Z","details":["status must be PENDING, CONFIRMED, IN_PROGRESS, FINISHED or CANCELLED"]}
+
+--------------------------------------------------------------------------
+[35] GET /reservations?foo=1 - unknown query parameter
+Expected HTTP 400 | Received HTTP 400 | OK
+$ curl -i -X GET -H "x-api-key: clave-via40-test" -H "x-user: admin-1"
+HTTP/1.1 400 Bad Request
+{"success":false,"statusCode":400,"message":"The request payload is invalid","error":"Bad Request","path":"/reservations?foo=1","timestamp":"2026-10-27T03:15:15.077Z","details":["property foo should not exist"]}
+
+==========================================================================
+6. CHANGE THE STATUS OF A RESERVATION (RN-03)
+==========================================================================
+
+--------------------------------------------------------------------------
+[36] PENDING to CONFIRMED as admin
+Expected HTTP 200 | Received HTTP 200 | OK
+$ curl -i -X PATCH -H "x-api-key: clave-via40-test" -H "x-user: admin-1" -H "Content-Type: application/json" -d '{"status":"CONFIRMED"}'
+HTTP/1.1 200 OK
+{"success":true,"data":{"id":1,"guest":"Juan Perez","guestDocument":"12345678","roomType":"SINGLE","checkInDate":"2026-11-05","checkOutDate":"2026-11-09","receptionistId":1,"roomId":1,"status":"CONFIRMED","createdAt":"2026-10-27T03:15:13.617Z","updatedAt":"2026-10-27T03:15:15.159Z"}}
+
+--------------------------------------------------------------------------
+[37] CONFIRMED back to PENDING (transition not allowed)
+Expected HTTP 409 | Received HTTP 409 | OK
+$ curl -i -X PATCH -H "x-api-key: clave-via40-test" -H "x-user: admin-1" -H "Content-Type: application/json" -d '{"status":"PENDING"}'
+HTTP/1.1 409 Conflict
+{"success":false,"statusCode":409,"message":"Invalid status transition: the reservation is in \"CONFIRMED\" and \"PENDING\" was requested","error":"Conflict","path":"/reservations/1/status","timestamp":"2026-10-27T03:15:15.249Z"}
+
+--------------------------------------------------------------------------
+[38] PENDING to IN_PROGRESS (status jump not allowed)
+Expected HTTP 409 | Received HTTP 409 | OK
+$ curl -i -X PATCH -H "x-api-key: clave-via40-test" -H "x-user: admin-1" -H "Content-Type: application/json" -d '{"status":"IN_PROGRESS"}'
+HTTP/1.1 409 Conflict
+{"success":false,"statusCode":409,"message":"Invalid status transition: the reservation is in \"PENDING\" and \"IN_PROGRESS\" was requested","error":"Conflict","path":"/reservations/5/status","timestamp":"2026-10-27T03:15:15.328Z"}
+
+--------------------------------------------------------------------------
+[39] PENDING to CONFIRMED as coordinator
+Expected HTTP 200 | Received HTTP 200 | OK
+$ curl -i -X PATCH -H "x-api-key: clave-via40-test" -H "x-user: coordinator-1" -H "Content-Type: application/json" -d '{"status":"CONFIRMED"}'
+HTTP/1.1 200 OK
+{"success":true,"data":{"id":3,"guest":"Juan Perez","guestDocument":"12345678","roomType":"DOUBLE","checkInDate":"2026-11-05","checkOutDate":"2026-11-09","receptionistId":1,"roomId":2,"status":"CONFIRMED","createdAt":"2026-10-27T03:15:13.807Z","updatedAt":"2026-10-27T03:15:15.405Z"}}
+
+--------------------------------------------------------------------------
+[40] CONFIRMED to IN_PROGRESS as coordinator
+Expected HTTP 200 | Received HTTP 200 | OK
+$ curl -i -X PATCH -H "x-api-key: clave-via40-test" -H "x-user: coordinator-1" -H "Content-Type: application/json" -d '{"status":"IN_PROGRESS"}'
+HTTP/1.1 200 OK
+{"success":true,"data":{"id":3,"guest":"Juan Perez","guestDocument":"12345678","roomType":"DOUBLE","checkInDate":"2026-11-05","checkOutDate":"2026-11-09","receptionistId":1,"roomId":2,"status":"IN_PROGRESS","createdAt":"2026-10-27T03:15:13.807Z","updatedAt":"2026-10-27T03:15:15.482Z"}}
+
+--------------------------------------------------------------------------
+[41] IN_PROGRESS to FINISHED as coordinator
+Expected HTTP 200 | Received HTTP 200 | OK
+$ curl -i -X PATCH -H "x-api-key: clave-via40-test" -H "x-user: coordinator-1" -H "Content-Type: application/json" -d '{"status":"FINISHED"}'
+HTTP/1.1 200 OK
+{"success":true,"data":{"id":3,"guest":"Juan Perez","guestDocument":"12345678","roomType":"DOUBLE","checkInDate":"2026-11-05","checkOutDate":"2026-11-09","receptionistId":1,"roomId":2,"status":"FINISHED","createdAt":"2026-10-27T03:15:13.807Z","updatedAt":"2026-10-27T03:15:15.560Z"}}
+
+--------------------------------------------------------------------------
+[42] FINISHED is a final status
+Expected HTTP 409 | Received HTTP 409 | OK
+$ curl -i -X PATCH -H "x-api-key: clave-via40-test" -H "x-user: admin-1" -H "Content-Type: application/json" -d '{"status":"IN_PROGRESS"}'
+HTTP/1.1 409 Conflict
+{"success":false,"statusCode":409,"message":"Invalid status transition: the reservation is in \"FINISHED\" and \"IN_PROGRESS\" was requested","error":"Conflict","path":"/reservations/3/status","timestamp":"2026-10-27T03:15:15.636Z"}
+
+--------------------------------------------------------------------------
+[43] A receptionist cannot cancel, not even their own reservation
+Expected HTTP 403 | Received HTTP 403 | OK
+$ curl -i -X PATCH -H "x-api-key: clave-via40-test" -H "x-user: receptionist-1" -H "Content-Type: application/json" -d '{"status":"CANCELLED"}'
+HTTP/1.1 403 Forbidden
+{"success":false,"statusCode":403,"message":"Role \"receptionist\" cannot cancel reservations: this action belongs to admin and coordinator","error":"Forbidden","path":"/reservations/5/status","timestamp":"2026-10-27T03:15:15.716Z"}
+
+--------------------------------------------------------------------------
+[44] A receptionist can change their own reservation
+Expected HTTP 200 | Received HTTP 200 | OK
+$ curl -i -X PATCH -H "x-api-key: clave-via40-test" -H "x-user: receptionist-1" -H "Content-Type: application/json" -d '{"status":"CONFIRMED"}'
+HTTP/1.1 200 OK
+{"success":true,"data":{"id":5,"guest":"Juan Perez","guestDocument":"12345678","roomType":"SUITE","checkInDate":"2026-11-05","checkOutDate":"2026-11-09","receptionistId":1,"roomId":3,"status":"CONFIRMED","createdAt":"2026-10-27T03:15:13.983Z","updatedAt":"2026-10-27T03:15:15.798Z"}}
+
+--------------------------------------------------------------------------
+[45] A receptionist cannot change a reservation of another receptionist
+Expected HTTP 403 | Received HTTP 403 | OK
+$ curl -i -X PATCH -H "x-api-key: clave-via40-test" -H "x-user: receptionist-1" -H "Content-Type: application/json" -d '{"status":"CONFIRMED"}'
+HTTP/1.1 403 Forbidden
+{"success":false,"statusCode":403,"message":"You are not allowed to access this reservation: it is not assigned to your user","error":"Forbidden","path":"/reservations/4/status","timestamp":"2026-10-27T03:15:15.874Z"}
+
+--------------------------------------------------------------------------
+[46] An admin can cancel a CONFIRMED reservation
+Expected HTTP 200 | Received HTTP 200 | OK
+$ curl -i -X PATCH -H "x-api-key: clave-via40-test" -H "x-user: admin-1" -H "Content-Type: application/json" -d '{"status":"CANCELLED"}'
+HTTP/1.1 200 OK
+{"success":true,"data":{"id":1,"guest":"Juan Perez","guestDocument":"12345678","roomType":"SINGLE","checkInDate":"2026-11-05","checkOutDate":"2026-11-09","receptionistId":1,"roomId":1,"status":"CANCELLED","createdAt":"2026-10-27T03:15:13.617Z","updatedAt":"2026-10-27T03:15:15.956Z"}}
+
+--------------------------------------------------------------------------
+[47] Status outside the catalogue
+Expected HTTP 400 | Received HTTP 400 | OK
+$ curl -i -X PATCH -H "x-api-key: clave-via40-test" -H "x-user: admin-1" -H "Content-Type: application/json" -d '{"status":"ARCHIVED"}'
+HTTP/1.1 400 Bad Request
+{"success":false,"statusCode":400,"message":"The request payload is invalid","error":"Bad Request","path":"/reservations/1/status","timestamp":"2026-10-27T03:15:16.036Z","details":["status must be PENDING, CONFIRMED, IN_PROGRESS, FINISHED or CANCELLED"]}
+
+--------------------------------------------------------------------------
+[48] Fields other than status are rejected
+Expected HTTP 400 | Received HTTP 400 | OK
+$ curl -i -X PATCH -H "x-api-key: clave-via40-test" -H "x-user: admin-1" -H "Content-Type: application/json" -d '{"status":"CONFIRMED","guest":"Someone"}'
+HTTP/1.1 400 Bad Request
+{"success":false,"statusCode":400,"message":"The request payload is invalid","error":"Bad Request","path":"/reservations/1/status","timestamp":"2026-10-27T03:15:16.109Z","details":["property guest should not exist"]}
+
+--------------------------------------------------------------------------
+[49] Reservation that does not exist
+Expected HTTP 404 | Received HTTP 404 | OK
+$ curl -i -X PATCH -H "x-api-key: clave-via40-test" -H "x-user: admin-1" -H "Content-Type: application/json" -d '{"status":"CONFIRMED"}'
+HTTP/1.1 404 Not Found
+{"success":false,"statusCode":404,"message":"Reservation with id \"99999\" does not exist","error":"Not Found","path":"/reservations/99999/status","timestamp":"2026-10-27T03:15:16.189Z"}
+
+--------------------------------------------------------------------------
+[50] Id that is not a positive number
+Expected HTTP 400 | Received HTTP 400 | OK
+$ curl -i -X PATCH -H "x-api-key: clave-via40-test" -H "x-user: admin-1" -H "Content-Type: application/json" -d '{"status":"CONFIRMED"}'
+HTTP/1.1 400 Bad Request
+{"success":false,"statusCode":400,"message":"\"NaN\" is not a valid id: it must be a positive integer","error":"Bad Request","path":"/reservations/not-a-number/status","timestamp":"2026-10-27T03:15:16.260Z"}
+
+==========================================================================
+7. RESERVATION DETAIL (RN-05)
+==========================================================================
+
+--------------------------------------------------------------------------
+[51] GET /reservations/:id as admin
+Expected HTTP 200 | Received HTTP 200 | OK
+$ curl -i -X GET -H "x-api-key: clave-via40-test" -H "x-user: admin-1"
+HTTP/1.1 200 OK
+{"success":true,"data":{"id":1,"guest":"Juan Perez","guestDocument":"12345678","roomType":"SINGLE","checkInDate":"2026-11-05","checkOutDate":"2026-11-09","receptionistId":1,"roomId":1,"status":"CANCELLED","createdAt":"2026-10-27T03:15:13.617Z","updatedAt":"2026-10-27T03:15:15.956Z"}}
+
+--------------------------------------------------------------------------
+[52] GET /reservations/:id of another receptionist
+Expected HTTP 403 | Received HTTP 403 | OK
+$ curl -i -X GET -H "x-api-key: clave-via40-test" -H "x-user: receptionist-1"
+HTTP/1.1 403 Forbidden
+{"success":false,"statusCode":403,"message":"You are not allowed to access this reservation: it is not assigned to your user","error":"Forbidden","path":"/reservations/4","timestamp":"2026-10-27T03:15:16.406Z"}
+
+--------------------------------------------------------------------------
+[53] GET /reservations/:id that does not exist
+Expected HTTP 404 | Received HTTP 404 | OK
+$ curl -i -X GET -H "x-api-key: clave-via40-test" -H "x-user: admin-1"
+HTTP/1.1 404 Not Found
+{"success":false,"statusCode":404,"message":"Reservation with id \"99999\" does not exist","error":"Not Found","path":"/reservations/99999","timestamp":"2026-10-27T03:15:16.472Z"}
+
+==========================================================================
+8. SUMMARY OF THE RESERVATIONS
+==========================================================================
+
+--------------------------------------------------------------------------
+[54] GET /reservations/summary as admin
+Expected HTTP 200 | Received HTTP 200 | OK
+$ curl -i -X GET -H "x-api-key: clave-via40-test" -H "x-user: admin-1"
+HTTP/1.1 200 OK
+{"success":true,"data":[{"status":"PENDING","total":2},{"status":"CONFIRMED","total":1},{"status":"IN_PROGRESS","total":0},{"status":"FINISHED","total":1},{"status":"CANCELLED","total":1}]}
+
+--------------------------------------------------------------------------
+[55] GET /reservations/summary as coordinator
+Expected HTTP 200 | Received HTTP 200 | OK
+$ curl -i -X GET -H "x-api-key: clave-via40-test" -H "x-user: coordinator-1"
+HTTP/1.1 200 OK
+{"success":true,"data":[{"status":"PENDING","total":2},{"status":"CONFIRMED","total":1},{"status":"IN_PROGRESS","total":0},{"status":"FINISHED","total":1},{"status":"CANCELLED","total":1}]}
+
+--------------------------------------------------------------------------
+[56] GET /reservations/summary as receptionist (forbidden)
+Expected HTTP 403 | Received HTTP 403 | OK
+$ curl -i -X GET -H "x-api-key: clave-via40-test" -H "x-user: receptionist-1"
+HTTP/1.1 403 Forbidden
+{"success":false,"statusCode":403,"message":"Role \"receptionist\" cannot access this resource. Allowed roles: admin, coordinator","error":"Forbidden","path":"/reservations/summary","timestamp":"2026-10-27T03:15:16.941Z"}
+
+==========================================================================
+9. ADMINISTRATION OF THE USERS (ADMIN ONLY)
+==========================================================================
+
+--------------------------------------------------------------------------
+[57] GET /users as admin - the seed accounts, without the hash
+Expected HTTP 200 | Received HTTP 200 | OK
+$ curl -i -X GET -H "x-api-key: clave-via40-test" -H "x-user: admin-1"
+HTTP/1.1 200 OK
+{"success":true,"data":[{"id":1,"username":"admin-1","name":"Ana Admin (chain administrator)","role":"admin","receptionistId":null,"createdAt":"2026-10-27T03:15:11.546Z"},{"id":2,"username":"coordinator-1","name":"Carlos Coordinator (Via 40 branch)","role":"coordinator","receptionistId":null,"createdAt":"2026-10-27T03:15:11.546Z"},{"id":3,"username":"receptionist-1","name":"Maria Rojas (Via 40 branch)","role":"receptionist","receptionistId":1,"createdAt":"2026-10-27T03:15:11.546Z"},{"id":4,"username":"receptionist-2","name":"Luis Mejia (Malecon branch)","role":"receptionist","receptionistId":2,"createdAt":"2026-10-27T03:15:11.546Z"}]}
+
+--------------------------------------------------------------------------
+[58] GET /users as coordinator (forbidden)
+Expected HTTP 403 | Received HTTP 403 | OK
+$ curl -i -X GET -H "x-api-key: clave-via40-test" -H "x-user: coordinator-1"
+HTTP/1.1 403 Forbidden
+{"success":false,"statusCode":403,"message":"Role \"coordinator\" cannot access this resource. Allowed roles: admin","error":"Forbidden","path":"/users","timestamp":"2026-10-27T03:15:17.082Z"}
+
+--------------------------------------------------------------------------
+[59] GET /users as receptionist (forbidden)
+Expected HTTP 403 | Received HTTP 403 | OK
+$ curl -i -X GET -H "x-api-key: clave-via40-test" -H "x-user: receptionist-1"
+HTTP/1.1 403 Forbidden
+{"success":false,"statusCode":403,"message":"Role \"receptionist\" cannot access this resource. Allowed roles: admin","error":"Forbidden","path":"/users","timestamp":"2026-10-27T03:15:17.146Z"}
+
+--------------------------------------------------------------------------
+[60] POST /users - creates a coordinator account
+Expected HTTP 201 | Received HTTP 201 | OK
+$ curl -i -X POST -H "x-api-key: clave-via40-test" -H "x-user: admin-1" -H "Content-Type: application/json" -d '{"username":"temporary-user","name":"Temporary User","role":"coordinator","password":"Secret123"}'
+HTTP/1.1 201 Created
+{"success":true,"data":{"id":5,"username":"temporary-user","name":"Temporary User","role":"coordinator","receptionistId":null,"createdAt":"2026-10-27T03:15:17.336Z"}}
+
+--------------------------------------------------------------------------
+[61] POST /users - duplicated username
+Expected HTTP 400 | Received HTTP 400 | OK
+$ curl -i -X POST -H "x-api-key: clave-via40-test" -H "x-user: admin-1" -H "Content-Type: application/json" -d '{"username":"admin-1","name":"Another admin","role":"admin","password":"Secret123"}'
+HTTP/1.1 400 Bad Request
+{"success":false,"statusCode":400,"message":"Username \"admin-1\" is already registered","error":"Bad Request","path":"/users","timestamp":"2026-10-27T03:15:17.424Z"}
+
+--------------------------------------------------------------------------
+[62] POST /users - receptionist role without receptionistId
+Expected HTTP 400 | Received HTTP 400 | OK
+$ curl -i -X POST -H "x-api-key: clave-via40-test" -H "x-user: admin-1" -H "Content-Type: application/json" -d '{"username":"receptionist-9","name":"New receptionist","role":"receptionist","password":"Secret123"}'
+HTTP/1.1 400 Bad Request
+{"success":false,"statusCode":400,"message":"receptionistId is required when the role is \"receptionist\"","error":"Bad Request","path":"/users","timestamp":"2026-10-27T03:15:17.496Z"}
+
+--------------------------------------------------------------------------
+[63] POST /users - role outside the catalogue
+Expected HTTP 400 | Received HTTP 400 | OK
+$ curl -i -X POST -H "x-api-key: clave-via40-test" -H "x-user: admin-1" -H "Content-Type: application/json" -d '{"username":"user-9","name":"User nine","role":"manager","password":"Secret123"}'
+HTTP/1.1 400 Bad Request
+{"success":false,"statusCode":400,"message":"The request payload is invalid","error":"Bad Request","path":"/users","timestamp":"2026-10-27T03:15:17.574Z","details":["role must be admin, coordinator or receptionist"]}
+
+--------------------------------------------------------------------------
+[64] POST /users - short password
+Expected HTTP 400 | Received HTTP 400 | OK
+$ curl -i -X POST -H "x-api-key: clave-via40-test" -H "x-user: admin-1" -H "Content-Type: application/json" -d '{"username":"user-10","name":"User ten","role":"coordinator","password":"123"}'
+HTTP/1.1 400 Bad Request
+{"success":false,"statusCode":400,"message":"The request payload is invalid","error":"Bad Request","path":"/users","timestamp":"2026-10-27T03:15:17.650Z","details":["password must be at least 6 characters long"]}
+
+--------------------------------------------------------------------------
+[65] PATCH /users/:id - links the account to receptionist 2
+Expected HTTP 200 | Received HTTP 200 | OK
+$ curl -i -X PATCH -H "x-api-key: clave-via40-test" -H "x-user: admin-1" -H "Content-Type: application/json" -d '{"role":"receptionist","receptionistId":2}'
+HTTP/1.1 200 OK
+{"success":true,"data":{"id":5,"username":"temporary-user","name":"Temporary User","role":"receptionist","receptionistId":2,"createdAt":"2026-10-27T03:15:17.336Z"}}
+
+--------------------------------------------------------------------------
+[66] GET /users/:id that does not exist
+Expected HTTP 404 | Received HTTP 404 | OK
+$ curl -i -X GET -H "x-api-key: clave-via40-test" -H "x-user: admin-1"
+HTTP/1.1 404 Not Found
+{"success":false,"statusCode":404,"message":"User with id \"99999\" does not exist","error":"Not Found","path":"/users/99999","timestamp":"2026-10-27T03:15:17.817Z"}
+
+--------------------------------------------------------------------------
+[67] GET /users/:id with an id that is not a number
+Expected HTTP 400 | Received HTTP 400 | OK
+$ curl -i -X GET -H "x-api-key: clave-via40-test" -H "x-user: admin-1"
+HTTP/1.1 400 Bad Request
+{"success":false,"statusCode":400,"message":"\"NaN\" is not a valid id: it must be a positive integer","error":"Bad Request","path":"/users/not-a-number","timestamp":"2026-10-27T03:15:17.888Z"}
+
+--------------------------------------------------------------------------
+[68] DELETE /users/:id removes the temporary account
+Expected HTTP 200 | Received HTTP 200 | OK
+$ curl -i -X DELETE -H "x-api-key: clave-via40-test" -H "x-user: admin-1"
+HTTP/1.1 200 OK
+{"success":true,"data":{"username":"temporary-user","name":"Temporary User","role":"receptionist","receptionistId":2,"createdAt":"2026-10-27T03:15:17.336Z"}}
+
+==========================================================================
+10. NORMALISED ERROR FORMAT (RN-06)
+==========================================================================
+
+--------------------------------------------------------------------------
+[69] Every error answers the same envelope (example with 400)
+Expected HTTP 400 | Received HTTP 400 | OK
+$ curl -i -X POST -H "x-api-key: clave-via40-test" -H "x-user: admin-1" -H "Content-Type: application/json" -d '{"guest":"Juan Perez"}'
+HTTP/1.1 400 Bad Request
+{"success":false,"statusCode":400,"message":"The request payload is invalid","error":"Bad Request","path":"/reservations","timestamp":"2026-10-27T03:15:18.033Z","details":["guestDocument must contain digits only (between 6 and 12 characters)","guestDocument must be a string","roomType must be SINGLE, DOUBLE or SUITE","checkInDate must be a valid ISO 8601 date","checkOutDate must be a valid ISO 8601 date","roomId must be greater than zero","roomId must be an integer"]}
+
+==========================================================================
+RESULT
+==========================================================================
+Scenarios: 69 | Expected answers: 69 | Mismatches: 0

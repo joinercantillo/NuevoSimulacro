@@ -1,47 +1,55 @@
-// src/common/guards/user.guard.ts
-import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  Inject,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator.js';
-import { UsersService } from '../../modules/users/users.service.js';
-import { User } from '../../modules/users/entities/user.entity.js';
+import { USER_DIRECTORY } from '../../modules/users/user-directory.interface.js';
+import type { User } from '../../modules/users/entities/user.entity.js';
+import type { UserDirectory } from '../../modules/users/user-directory.interface.js';
 
+/**
+ * Identifies the caller through the x-user header, looking the value up in the
+ * users table (PostgreSQL). The role always comes from the server: a role sent
+ * by the client is never trusted (RN-04).
+ *
+ * Endpoints marked with @Public() skip this guard: they only need the API key
+ * (for example POST /auth/login, where the token is obtained).
+ */
 @Injectable()
 export class UserGuard implements CanActivate {
-  // Asegúrate de inyectar el Reflector y tu UsersService en el constructor
   constructor(
     private readonly reflector: Reflector,
-    private readonly usersService: UsersService,
+    @Inject(USER_DIRECTORY) private readonly userDirectory: UserDirectory,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    // 1. Validar si el endpoint o controlador tiene el decorador @Public()
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
     ]);
 
     if (isPublic) {
-      return true; // Si es público, se salta la validación
+      return true;
     }
 
-    // 2. Lógica para rutas protegidas
     const request = context.switchToHttp().getRequest();
-    const xUser = request.headers['x-user'];
+    const xUser: string | undefined = request.headers['x-user'];
 
     if (!xUser) {
-      return false; // No viene la cabecera, acceso denegado
+      throw new UnauthorizedException('The x-user header is missing');
     }
 
-    const user: User | undefined = await this.usersService.findById(xUser); 
+    const user: User | undefined = await this.userDirectory.findByUsername(xUser);
 
     if (!user) {
-      return false; // El usuario no existe en PostgreSQL, acceso denegado
+      throw new UnauthorizedException(`User "${xUser}" does not exist`);
     }
 
-    // Inyectamos el usuario en el objeto de la petición
-    request.user = user; 
-    
-    // 3. ¡EL FIX AQUÍ!: Retornar true de forma explícita si pasó todas las condiciones
-    return true; 
+    request.user = user;
+    return true;
   }
 }

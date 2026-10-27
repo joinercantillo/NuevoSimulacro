@@ -3,17 +3,18 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 const logger = new Logger('Swagger');
 
-export const swaggerConfiguration = (app: INestApplication): void => {
+export const swaggerConfiguration = (app: INestApplication, host: string, port: number): void => {
   const config = new DocumentBuilder()
     .setTitle('Arenosa Hotels S.A.S. - Reservations API')
     .setDescription(
       'REST API to register and control hotel room reservations for the Barranquilla Carnival season. ' +
-        'Every endpoint requires the `x-api-key` header (a valid key configured in the environment) and the ' +
-        '`x-user` header (the id of a test user). Use the Authorize button to send both headers.',
+        'Every endpoint requires the `x-api-key` header (a valid key configured in .env) and the ' +
+        '`x-user` header (the username of a user that exists in PostgreSQL, for example admin-1). ' +
+        'POST /auth/login additionally issues a JWT that can be used in `GET /auth/profile`. ' +
+        'Use the Authorize button to send the credentials.',
     )
     .setVersion('1.0.0')
-
-      .addBearerAuth(
+    .addBearerAuth(
       {
         type: 'http',
         scheme: 'bearer',
@@ -23,19 +24,19 @@ export const swaggerConfiguration = (app: INestApplication): void => {
       },
       'JWT-auth',
     )
-   .addApiKey(
+    .addApiKey(
       {
         type: 'apiKey',
-        name: 'x-api-key', // Nombre exacto de la cabecera que busca el error
+        name: 'x-api-key', // Exact header read by ApiKeyGuard
         in: 'header',
-        description: 'Ingresa tu API Key global para poder consumir los recursos',
+        description: 'API key configured in the API_KEYS variable of .env',
       },
-      'api-key-auth', // Nombre de la estrategia para los controladores
+      'api-key-auth', // Strategy name used by the guards
     )
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
 
-  logger.log(`Docs available at http://localhost:${process.env.PORT ?? 3000}/api/docs`);
+  logger.log(`Docs available at http://${host}:${port}/api/docs`);
 };

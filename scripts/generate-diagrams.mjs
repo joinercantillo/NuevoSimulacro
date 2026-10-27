@@ -39,14 +39,19 @@ const SQL_HEADER = renotice('--');
 /**
  * The model follows the ER diagram of the assignment translated to English:
  * hoteles_sedes -> hotels, habitaciones -> rooms, recepcionistas ->
- * receptionists and reservas -> reservations. The original assignment keeps
- * the users table in memory, so it does not appear here.
+ * receptionists and reservas -> reservations.
+ *
+ * The assignment keeps the users table in memory. The implementation persists
+ * it (`users`) because the identity and the roles are validated against
+ * PostgreSQL, and it is documented here so the diagrams describe the real
+ * schema. The notes explain the difference.
  */
 const model = {
   enumerations: [
     { name: 'room_type_enum', values: ['SINGLE', 'DOUBLE', 'SUITE'] },
     { name: 'room_status_enum', values: ['AVAILABLE', 'OCCUPIED', 'MAINTENANCE'] },
     { name: 'reservation_status_enum', values: ['PENDING', 'CONFIRMED', 'IN_PROGRESS', 'FINISHED', 'CANCELLED'] },
+    { name: 'role_enum', values: ['admin', 'coordinator', 'receptionist'] },
   ],
   entities: [
     {
@@ -95,6 +100,20 @@ const model = {
       ],
     },
     {
+      table: 'users',
+      concept: 'User',
+      comment: 'Identities behind the x-user header: role comes from here, never from the request',
+      columns: [
+        { name: 'id', type: 'integer', concept: 'id', conceptType: 'integer', pk: true, increment: true },
+        { name: 'username', type: 'varchar(50)', concept: 'username', conceptType: 'string' },
+        { name: 'name', type: 'varchar(100)', concept: 'name', conceptType: 'string' },
+        { name: 'role', type: 'varchar(20)', concept: 'role', conceptType: 'enum', enumRef: 'role_enum' },
+        { name: 'receptionist_id', type: 'integer', concept: 'receptionistId', conceptType: 'integer', fk: true, nullable: true },
+        { name: 'password_hash', type: 'varchar(100)', concept: 'passwordHash', conceptType: 'string' },
+        { name: 'created_at', type: 'timestamp', concept: 'createdAt', conceptType: 'datetime' },
+      ],
+    },
+    {
       table: 'reservations',
       concept: 'Reservation',
       comment: 'Reservation of a room by a guest, owned by one receptionist',
@@ -122,11 +141,13 @@ const model = {
     { from: 'hotels', to: 'rooms', symbol: '||--o{', label: 'has' },
     { from: 'rooms', to: 'reservations', symbol: '||--o{', label: 'hosts' },
     { from: 'receptionists', to: 'reservations', symbol: '||--o{', label: 'is responsible for' },
+    { from: 'receptionists', to: 'users', symbol: '||--|o', label: 'signs in as' },
   ],
   foreignKeys: [
     { table: 'rooms', column: 'hotel_id', references: 'hotels', on: 'id' },
     { table: 'reservations', column: 'receptionist_id', references: 'receptionists', on: 'id' },
     { table: 'reservations', column: 'room_id', references: 'rooms', on: 'id' },
+    { table: 'users', column: 'receptionist_id', references: 'receptionists', on: 'id' },
   ],
 };
 
@@ -141,9 +162,9 @@ const markersOf = (column) =>
 
 const buildDer = () => {
   const lines = [
-    ...HEADER,
-    '%% Conceptual entity-relationship diagram (DER) of the reservations model',
     'erDiagram',
+    ...MERMAID_NOTICE,
+    '  %% Conceptual entity-relationship diagram (DER) of the reservations model',
   ];
 
   for (const enumeration of model.enumerations) {
@@ -174,7 +195,12 @@ const buildDer = () => {
 };
 
 const buildMer = () => {
-  const lines = [...HEADER, '%% Physical relational model (MER) of the reservations model', 'erDiagram', ''];
+  const lines = [
+    'erDiagram',
+    ...MERMAID_NOTICE,
+    '  %% Physical relational model (MER) of the reservations model',
+    '',
+  ];
 
   for (const entity of model.entities) {
     lines.push(`  %% ${entity.comment}`);
@@ -212,7 +238,7 @@ const buildDbml = () => {
       const type = column.enumRef ?? column.type;
       const settings = column.pk
         ? ['pk', ...(column.increment ? ['increment'] : [])]
-        : ['not null'];
+        : [column.nullable ? 'null' : 'not null'];
       lines.push(`  ${column.name} ${type} [${settings.join(', ')}]`);
     }
     lines.push(`  Note: '${entity.comment}'`);
@@ -254,7 +280,12 @@ const buildSchema = () => {
     lines.push(`CREATE TABLE ${entity.table} (`);
 
     const columns = entity.columns.map((column) => {
-      const parts = [column.name, sqlType(column), column.pk ? 'PRIMARY KEY' : 'NOT NULL'];
+      const nullability = column.pk
+        ? 'PRIMARY KEY'
+        : column.nullable
+          ? 'NULL'
+          : 'NOT NULL';
+      const parts = [column.name, sqlType(column), nullability];
       if (column.name === 'created_at' || column.name === 'updated_at') {
         parts.push('DEFAULT CURRENT_TIMESTAMP');
       }

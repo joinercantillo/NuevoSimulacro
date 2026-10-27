@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   ForbiddenException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -11,8 +12,8 @@ import { Role } from '../../common/enums/role.enum.js';
 import { ReceptionistsService } from '../receptionists/receptionists.service.js';
 import { RoomsService } from '../rooms/rooms.service.js';
 import { User } from '../users/entities/user.entity.js';
-
-import { UsersService } from '../users/users.service.js';
+import { USER_DIRECTORY } from '../users/user-directory.interface.js';
+import type { UserDirectory } from '../users/user-directory.interface.js';
 import { CreateReservationDto } from './dto/create-reservation.dto.js';
 import { FilterReservationsDto } from './dto/filter-reservations.dto.js';
 import { UpdateStatusDto } from './dto/update-status.dto.js';
@@ -25,7 +26,9 @@ export class ReservationsService {
   constructor(
     @InjectRepository(Reservation)
     private readonly reservationsRepository: Repository<Reservation>,
-    private readonly usersService: UsersService,
+    // Depends on the contract, not on the concrete service (Dependency Inversion).
+    @Inject(USER_DIRECTORY)
+    private readonly userDirectory: UserDirectory,
     private readonly receptionistsService: ReceptionistsService,
     private readonly roomsService: RoomsService,
   ) {}
@@ -64,7 +67,7 @@ export class ReservationsService {
   async findAll(query: FilterReservationsDto, user: User): Promise<Reservation[]> {
     const where: FindOptionsWhere<Reservation> = {};
 
-    if (user.role === Role.RECEPTIONIST && user.receptionistId !== undefined) {
+    if (user.role === Role.RECEPTIONIST && typeof user.receptionistId === 'number') {
       where.receptionistId = user.receptionistId;
     }
 
@@ -101,7 +104,8 @@ export class ReservationsService {
       );
     }
 
-    if (dto.status === ReservationStatus.CANCELLED && !canCancel(user.role as Role)) {  throw new ForbiddenException(
+    if (dto.status === ReservationStatus.CANCELLED && !canCancel(user.role)) {
+      throw new ForbiddenException(
         `Role "${user.role}" cannot cancel reservations: this action belongs to admin and coordinator`,
       );
     }
@@ -126,9 +130,9 @@ export class ReservationsService {
     // A receptionist can only register reservations on their own behalf;
     // any value sent by the client is ignored.
     if (user.role === Role.RECEPTIONIST) {
-      if (user.receptionistId === undefined) {
+      if (user.receptionistId === null || user.receptionistId === undefined) {
         throw new BadRequestException(
-          `Receptionist user "${user.id}" is not linked to a row in the receptionists table`,
+          `Receptionist user "${user.username}" is not linked to a row in the receptionists table`,
         );
       }
       return user.receptionistId;
@@ -153,7 +157,9 @@ export class ReservationsService {
       );
     }
 
-    const linkedUser = this.usersService.findReceptionistByReceptionistId(dto.receptionistId);
+    const linkedUser = await this.userDirectory.findReceptionistByReceptionistId(
+      dto.receptionistId,
+    );
     if (!linkedUser) {
       throw new BadRequestException(
         `Receptionist with id "${dto.receptionistId}" does not belong to a user with the receptionist role`,
@@ -164,7 +170,7 @@ export class ReservationsService {
   }
 
   private assertOwnership(reservation: Reservation, user: User): void {
-    if (!isOwner(user.role as Role, reservation.receptionistId, user.receptionistId)) {
+    if (!isOwner(user.role, reservation.receptionistId, user.receptionistId)) {
       throw new ForbiddenException(
         'You are not allowed to access this reservation: it is not assigned to your user',
       );

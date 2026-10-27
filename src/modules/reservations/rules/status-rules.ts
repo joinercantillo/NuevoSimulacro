@@ -28,6 +28,6 @@ export const canCancel = (role: Role): boolean =>
 /** Receptionists only see and modify their own reservations. */
 export const isOwner = (
   role: Role,
-  reservationReceptionistId: number | undefined,
-  userReceptionistId: number | undefined,
+  reservationReceptionistId: number | null | undefined,
+  userReceptionistId: number | null | undefined,
 ): boolean => role !== Role.RECEPTIONIST || reservationReceptionistId === userReceptionistId;

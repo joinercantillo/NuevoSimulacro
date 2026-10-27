@@ -26,6 +26,12 @@ Enum reservation_status_enum {
   CANCELLED
 }
 
+Enum role_enum {
+  admin
+  coordinator
+  receptionist
+}
+
 Table hotels {
   id integer [pk, increment]
   name varchar(100) [not null]
@@ -62,6 +68,17 @@ Table receptionists {
   Note: 'Receptionists referenced by the reservations'
 }
 
+Table users {
+  id integer [pk, increment]
+  username varchar(50) [not null]
+  name varchar(100) [not null]
+  role role_enum [not null]
+  receptionist_id integer [null]
+  password_hash varchar(100) [not null]
+  created_at timestamp [not null]
+  Note: 'Identities behind the x-user header: role comes from here, never from the request'
+}
+
 Table reservations {
   id integer [pk, increment]
   guest varchar(100) [not null]
@@ -80,3 +97,4 @@ Table reservations {
 Ref: rooms.hotel_id > hotels.id
 Ref: reservations.receptionist_id > receptionists.id
 Ref: reservations.room_id > rooms.id
+Ref: users.receptionist_id > receptionists.id

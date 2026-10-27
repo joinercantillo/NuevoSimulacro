@@ -5,7 +5,6 @@ import {
   HttpCode,
   HttpStatus,
   Param,
-  ParseIntPipe,
   Patch,
   Post,
   Query,
@@ -27,6 +26,7 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator.js';
 import { Roles } from '../../common/decorators/roles.decorator.js';
 import { ErrorResponseDto } from '../../common/dto/error-response.dto.js';
 import { Role } from '../../common/enums/role.enum.js';
+import { ParsePositiveIdPipe } from '../../common/pipes/positive-id.pipe.js';
 import type { User } from '../users/entities/user.entity.js';
 
 import { CreateReservationDto } from './dto/create-reservation.dto.js';
@@ -164,7 +164,7 @@ export class ReservationsController {
   })
   @ApiUnauthorizedResponse({ type: ErrorResponseDto, description: 'Invalid identity' })
   findOne(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParsePositiveIdPipe) id: number,
     @CurrentUser() user: User,
   ): Promise<Reservation> {
     return this.reservationsService.findOne(id, user);
@@ -200,7 +200,7 @@ export class ReservationsController {
     description: 'Invalid transition (status jump, final status, ...)',
   })
   updateStatus(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParsePositiveIdPipe) id: number,
     @Body() updateStatusDto: UpdateStatusDto,
     @CurrentUser() user: User,
   ): Promise<Reservation> {

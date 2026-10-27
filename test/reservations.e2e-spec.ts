@@ -6,8 +6,22 @@ import { AppModule } from '../src/app.module.js';
 import { HttpExceptionFilter } from '../src/common/filters/http-exception.filter.js';
 import { ResponseInterceptor } from '../src/common/interceptors/response.interceptor.js';
 
-/** Values defined in jest.e2e.config.js (embedded PostgreSQL). */
-const API_KEY = 'test-key-via40';
+/** Values loaded from .env by jest.e2e.config.js (embedded PostgreSQL). */
+const requiredEnv = (name: string): string => {
+  const value = process.env[name];
+  if (!value) throw new Error(`Missing "${name}" in .env`);
+  return value;
+};
+
+const firstApiKey = (): string => {
+  const first = requiredEnv('API_KEYS').split(',')[0]?.trim();
+  if (!first) throw new Error('"API_KEYS" in .env does not contain any value');
+  return first;
+};
+
+const API_KEY = firstApiKey();
+const SEED_PASSWORD = requiredEnv('SEED_USER_PASSWORD');
+const JWT_EXPIRES_IN = requiredEnv('JWT_EXPIRES_IN');
 const USERS = {
   admin: 'admin-1',
   coordinator: 'coordinator-1',
@@ -596,6 +610,207 @@ describe('Reservations API (e2e)', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
+    });
+  });
+
+  describe('authentication (POST /auth/login and GET /auth/profile)', () => {
+    let token: string;
+
+    const login = (body: Record<string, unknown>, apiKey: string | null = API_KEY) =>
+      request(server).post('/auth/login').set(headers(undefined, apiKey)).send(body);
+
+    it('issues a JWT for a seeded user', async () => {
+      const response = await login({ username: USERS.admin, password: SEED_PASSWORD });
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.token_type).toBe('Bearer');
+      expect(response.body.data.expires_in).toBe(JWT_EXPIRES_IN);
+      expect(response.body.data.user).toMatchObject({
+        username: USERS.admin,
+        role: 'admin',
+      });
+
+      token = response.body.data.access_token;
+      expect(token.split('.')).toHaveLength(3);
+    });
+
+    it('answers 401 when the password is wrong', async () => {
+      const response = await login({ username: USERS.admin, password: 'not-the-password' });
+
+      expect(response.status).toBe(401);
+      expect(response.body.message).toBe('Invalid credentials');
+    });
+
+    it('answers 401 when the user does not exist, with the same message', async () => {
+      const response = await login({ username: 'ghost-user', password: SEED_PASSWORD });
+
+      expect(response.status).toBe(401);
+      expect(response.body.message).toBe('Invalid credentials');
+    });
+
+    it('answers 400 when the DTO is incomplete', async () => {
+      const response = await login({ username: USERS.admin });
+
+      expect(response.status).toBe(400);
+    });
+
+    it('still requires the API key', async () => {
+      const response = await login({ username: USERS.admin, password: SEED_PASSWORD }, null);
+
+      expect(response.status).toBe(401);
+      expect(response.body.message).toContain('x-api-key');
+    });
+
+    it('recovers the identity from the token in GET /auth/profile', async () => {
+      const response = await request(server)
+        .get('/auth/profile')
+        .set('x-api-key', API_KEY)
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data).toMatchObject({
+        username: USERS.admin,
+        role: 'admin',
+      });
+    });
+
+    it('answers 401 for GET /auth/profile without a token', async () => {
+      const response = await request(server).get('/auth/profile').set('x-api-key', API_KEY);
+
+      expect(response.status).toBe(401);
+    });
+
+    it('answers 401 for a token whose signature does not match', async () => {
+      const broken = `${token.split('.').slice(0, 2).join('.')}.not-a-valid-signature`;
+
+      const response = await request(server)
+        .get('/auth/profile')
+        .set('x-api-key', API_KEY)
+        .set('Authorization', `Bearer ${broken}`);
+
+      expect(response.status).toBe(401);
+    });
+  });
+
+  describe('users administration (admin only)', () => {
+    let createdId: number;
+
+    it('lists the seeded users and never returns the hash', async () => {
+      const response = await get('/users');
+
+      expect(response.status).toBe(200);
+
+      const usernames = response.body.data.map((user: { username: string }) => user.username);
+      expect(usernames).toEqual(
+        expect.arrayContaining([
+          USERS.admin,
+          USERS.coordinator,
+          USERS.receptionist1,
+          USERS.receptionist2,
+        ]),
+      );
+      expect(response.body.data[0]).not.toHaveProperty('passwordHash');
+    });
+
+    it('is forbidden for a coordinator and for a receptionist', async () => {
+      const coordinator = await get('/users', USERS.coordinator);
+      const receptionist = await get('/users', USERS.receptionist1);
+
+      expect(coordinator.status).toBe(403);
+      expect(receptionist.status).toBe(403);
+    });
+
+    it('creates a user without exposing the password', async () => {
+      const response = await post(
+        '/users',
+        {
+          username: 'temporary-user',
+          name: 'Temporary User',
+          role: 'coordinator',
+          password: 'Secret123',
+        },
+        USERS.admin,
+      );
+
+      expect(response.status).toBe(201);
+      expect(response.body.data).not.toHaveProperty('passwordHash');
+      expect(response.body.data).not.toHaveProperty('password');
+
+      createdId = response.body.data.id;
+    });
+
+    it('rejects a username that is already registered', async () => {
+      const response = await post(
+        '/users',
+        { username: USERS.admin, name: 'Another admin', role: 'admin', password: 'Secret123' },
+        USERS.admin,
+      );
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toContain('already registered');
+    });
+
+    it('requires receptionistId when the role is receptionist', async () => {
+      const response = await post(
+        '/users',
+        {
+          username: 'receptionist-9',
+          name: 'New receptionist',
+          role: 'receptionist',
+          password: 'Secret123',
+        },
+        USERS.admin,
+      );
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toContain('receptionistId');
+    });
+
+    it('links a receptionist user to the receptionists table', async () => {
+      const response = await post(
+        '/users',
+        {
+          username: 'receptionist-9',
+          name: 'New receptionist',
+          role: 'receptionist',
+          receptionistId: 2,
+          password: 'Secret123',
+        },
+        USERS.admin,
+      );
+
+      expect(response.status).toBe(201);
+      expect(response.body.data.receptionistId).toBe(2);
+
+      await request(server).delete(`/users/${response.body.data.id}`).set(headers(USERS.admin));
+    });
+
+    it('updates the role of the created user', async () => {
+      const response = await patch(
+        `/users/${createdId}`,
+        { role: 'receptionist', receptionistId: 2 },
+        USERS.admin,
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body.data).toMatchObject({ role: 'receptionist', receptionistId: 2 });
+    });
+
+    it('answers 404 for an unknown id and 400 for a malformed one', async () => {
+      const unknown = await get('/users/99999');
+      const malformed = await get('/users/not-a-number');
+
+      expect(unknown.status).toBe(404);
+      expect(malformed.status).toBe(400);
+    });
+
+    it('deletes the created user', async () => {
+      const response = await request(server).delete(`/users/${createdId}`).set(headers(USERS.admin));
+
+      expect(response.status).toBe(200);
+
+      const after = await get(`/users/${createdId}`);
+      expect(after.status).toBe(404);
     });
   });
 });

@@ -1,12 +1,7 @@
-<!-- AUTO GENERATED FILE: do not edit by hand.
-
-Regenerate it with: npm run diagrams
-
-Source of the model: scripts/generate-diagrams.mjs
--->
-
-%% Physical relational model (MER) of the reservations model
 erDiagram
+%% AUTO GENERATED FILE: do not edit by hand. Regenerate with: npm run diagrams
+%% Source of the model: scripts/generate-diagrams.mjs
+  %% Physical relational model (MER) of the reservations model
 
   %% Branches of the Arenosa Hotels chain
   hotels {
@@ -44,6 +39,17 @@ erDiagram
     timestamp updated_at
   }
 
+  %% Identities behind the x-user header: role comes from here, never from the request
+  users {
+    integer id "PK"
+    varchar username
+    varchar name
+    varchar role
+    integer receptionist_id "FK"
+    varchar password_hash
+    timestamp created_at
+  }
+
   %% Reservation of a room by a guest, owned by one receptionist
   reservations {
     integer id "PK"
@@ -62,3 +68,4 @@ erDiagram
   hotels ||--o{ rooms : "has"
   rooms ||--o{ reservations : "hosts"
   receptionists ||--o{ reservations : "is responsible for"
+  receptionists ||--|o users : "signs in as"

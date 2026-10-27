@@ -1,15 +1,11 @@
-<!-- AUTO GENERATED FILE: do not edit by hand.
-
-Regenerate it with: npm run diagrams
-
-Source of the model: scripts/generate-diagrams.mjs
--->
-
-%% Conceptual entity-relationship diagram (DER) of the reservations model
 erDiagram
+%% AUTO GENERATED FILE: do not edit by hand. Regenerate with: npm run diagrams
+%% Source of the model: scripts/generate-diagrams.mjs
+  %% Conceptual entity-relationship diagram (DER) of the reservations model
   %% room_type_enum: SINGLE, DOUBLE, SUITE
   %% room_status_enum: AVAILABLE, OCCUPIED, MAINTENANCE
   %% reservation_status_enum: PENDING, CONFIRMED, IN_PROGRESS, FINISHED, CANCELLED
+  %% role_enum: admin, coordinator, receptionist
 
   %% Branches of the Arenosa Hotels chain
   Hotel {
@@ -47,6 +43,17 @@ erDiagram
     datetime updatedAt
   }
 
+  %% Identities behind the x-user header: role comes from here, never from the request
+  User {
+    integer id "PK"
+    string username
+    string name
+    enum role
+    integer receptionistId "FK"
+    string passwordHash
+    datetime createdAt
+  }
+
   %% Reservation of a room by a guest, owned by one receptionist
   Reservation {
     integer id "PK"
@@ -65,3 +72,4 @@ erDiagram
   Hotel ||--o{ Room : "has"
   Room ||--o{ Reservation : "hosts"
   Receptionist ||--o{ Reservation : "is responsible for"
+  Receptionist ||--|o User : "signs in as"

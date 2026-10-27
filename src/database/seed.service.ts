@@ -1,18 +1,28 @@
 import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import * as bcrypt from 'bcrypt';
+import { Role } from '../common/enums/role.enum.js';
 import { Hotel } from '../modules/hotels/entities/hotel.entity.js';
 import { Receptionist } from '../modules/receptionists/entities/receptionist.entity.js';
 import { RoomStatus } from '../modules/rooms/enums/room-status.enum.js';
 import { RoomType } from '../modules/rooms/enums/room-type.enum.js';
 import { Room } from '../modules/rooms/entities/room.entity.js';
+import { User } from '../modules/users/entities/user.entity.js';
 
 /**
- * Idempotent seed of the master data (branches, rooms and receptionists).
- * It only inserts when the table is empty, so it never overwrites real data.
+ * Idempotent seed of the master data: branches, rooms, receptionists and the
+ * four test users. It only inserts when the table is empty, so it never
+ * overwrites real data.
  *
- * The ids created here are the ones referenced by the in-memory test users
- * (receptionist-1 -> receptionists.id 1, receptionist-2 -> receptionists.id 2).
+ * The ids created here are referenced by other rows and by the documentation:
+ *   users.receptionist_id -> receptionists.id (1 and 2)
+ * After inserting fixed ids the sequences are advanced, otherwise the next
+ * insert made by the API would try to reuse id 1.
+ *
+ * The initial password of every account comes from SEED_USER_PASSWORD in .env
+ * and is stored as a bcrypt hash.
  */
 @Injectable()
 export class SeedService implements OnApplicationBootstrap {
@@ -25,12 +35,16 @@ export class SeedService implements OnApplicationBootstrap {
     private readonly roomsRepository: Repository<Room>,
     @InjectRepository(Receptionist)
     private readonly receptionistsRepository: Repository<Receptionist>,
+    @InjectRepository(User)
+    private readonly usersRepository: Repository<User>,
+    private readonly configService: ConfigService,
   ) {}
 
   async onApplicationBootstrap(): Promise<void> {
     await this.seedHotels();
     await this.seedRooms();
     await this.seedReceptionists();
+    await this.seedUsers();
   }
 
   private async seedHotels(): Promise<void> {
@@ -65,6 +79,7 @@ export class SeedService implements OnApplicationBootstrap {
       },
     ]);
 
+    await this.syncSequence('hotels');
     this.logger.log('Seed: 3 hotel branches created');
   }
 
@@ -82,6 +97,7 @@ export class SeedService implements OnApplicationBootstrap {
       { id: 6, number: '301', roomType: RoomType.SINGLE, capacity: 2, status: RoomStatus.AVAILABLE, hotelId: 3 },
     ]);
 
+    await this.syncSequence('rooms');
     this.logger.log('Seed: 6 rooms created');
   }
 
@@ -109,6 +125,68 @@ export class SeedService implements OnApplicationBootstrap {
       },
     ]);
 
+    await this.syncSequence('receptionists');
     this.logger.log('Seed: 2 receptionists created');
+  }
+
+  private async seedUsers(): Promise<void> {
+    if ((await this.usersRepository.count()) > 0) {
+      return;
+    }
+
+    const passwordHash = await bcrypt.hash(
+      this.configService.getOrThrow<string>('seedUserPassword'),
+      this.configService.getOrThrow<number>('bcryptRounds'),
+    );
+
+    await this.usersRepository.insert([
+      {
+        id: 1,
+        username: 'admin-1',
+        name: 'Ana Admin (chain administrator)',
+        role: Role.ADMIN,
+        receptionistId: null,
+        passwordHash,
+      },
+      {
+        id: 2,
+        username: 'coordinator-1',
+        name: 'Carlos Coordinator (Via 40 branch)',
+        role: Role.COORDINATOR,
+        receptionistId: null,
+        passwordHash,
+      },
+      {
+        id: 3,
+        username: 'receptionist-1',
+        name: 'Maria Rojas (Via 40 branch)',
+        role: Role.RECEPTIONIST,
+        receptionistId: 1,
+        passwordHash,
+      },
+      {
+        id: 4,
+        username: 'receptionist-2',
+        name: 'Luis Mejia (Malecon branch)',
+        role: Role.RECEPTIONIST,
+        receptionistId: 2,
+        passwordHash,
+      },
+    ]);
+
+    await this.syncSequence('users');
+    this.logger.log(
+      `Seed: 4 users created (initial password from SEED_USER_PASSWORD, bcrypt x${this.configService.getOrThrow<number>('bcryptRounds')})`,
+    );
+  }
+
+  /**
+   * PostgreSQL keeps its own counter for generated ids; after inserting fixed
+   * ids it must be moved forward or the next insert would collide.
+   */
+  private async syncSequence(table: string): Promise<void> {
+    await this.hotelsRepository.query(
+      `SELECT setval(pg_get_serial_sequence('${table}', 'id'), COALESCE((SELECT MAX(id) FROM ${table}), 1))`,
+    );
   }
 }

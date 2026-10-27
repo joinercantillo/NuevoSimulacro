@@ -1,45 +1,38 @@
+import 'reflect-metadata';
+import { Logger, ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module.js';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { ValidationPipe } from '@nestjs/common';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter.js';
+import { ResponseInterceptor } from './common/interceptors/response.interceptor.js';
+import { swaggerConfiguration } from './config/swagger.config.js';
 
-async function bootstrap() {
+async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
 
-  app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,
-    forbidNonWhitelisted: true,
-    transform: true,
-  }));
+  // Global DTO validation: unknown or protected fields are rejected.
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
 
-  const config = new DocumentBuilder()
-    .setTitle('Secure NestJS API — Arenosa Hoteles S.A.S.')
-    .setDescription('Simulacro corregido con autenticación basada en JWT, Hashes Bcrypt y protección API Key')
-    .setVersion('2.0')
-    .addBearerAuth(
-      {
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'JWT',
-        name: 'JWT',
-        in: 'header',
-      },
-      'JWT-auth',
-    )
-    .addApiKey(
-      {
-        type: 'apiKey',
-        name: 'x-api-key',
-        in: 'header',
-        description: 'Introduce la clave de la sede asignada',
-      },
-      'api-key-auth',
-    )
-    .build();
+  app.useGlobalFilters(new HttpExceptionFilter());
+  app.useGlobalInterceptors(new ResponseInterceptor());
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
+  // The port is not read from process.env here: it comes from the validated
+  // configuration registered in ConfigModule (.env).
+  const configService = app.get(ConfigService);
+  const port = configService.getOrThrow<number>('port');
+  const host = configService.getOrThrow<string>('host');
 
-  await app.listen(process.env.PORT || 3000);
+  swaggerConfiguration(app, host, port);
+
+  await app.listen(port, host);
+  Logger.log(`API listening on http://${host}:${port}`, 'Bootstrap');
+  Logger.log(`Swagger on http://${host}:${port}/api/docs`, 'Bootstrap');
 }
-bootstrap();
+
+await bootstrap();
